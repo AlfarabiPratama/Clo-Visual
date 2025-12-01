@@ -55,13 +55,25 @@ Return a JSON object with:
 
     const data = JSON.parse(response.text || '{}');
     
+    // Map pattern keywords to realistic fabric textures
+    const patternMap: Record<string, string> = {
+      'jersey-knit': 'https://images.unsplash.com/photo-1558769132-cb1aea1f3f69?w=512&h=512&fit=crop',
+      'batik-modern': 'https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=512&h=512&fit=crop',
+      'stripes': 'https://images.unsplash.com/photo-1562137369-1a1a0bc66744?w=512&h=512&fit=crop',
+      'floral': 'https://images.unsplash.com/photo-1604695573706-53170668f6a6?w=512&h=512&fit=crop',
+      'geometric': 'https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=512&h=512&fit=crop',
+      'plain': null, // No texture, solid color only
+      'denim': 'https://images.unsplash.com/photo-1582552938357-32b906df40cb?w=512&h=512&fit=crop',
+      'cotton': 'https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?w=512&h=512&fit=crop'
+    };
+    
+    const patternKey = (data.texturePattern || 'plain').toLowerCase();
+    const matchedPattern = Object.keys(patternMap).find(key => patternKey.includes(key));
+    
     return {
       suggestedColor: data.suggestedColor || "#ffffff",
       designDescription: data.designDescription || "Desain kustom berdasarkan permintaan.",
-      // For this prototype, we map the keyword to a random placeholder image because actual image generation 
-      // requires a different model/flow (Imagen) which might be slower or strictly paid.
-      // In a full implementation, we would call an image generation model here.
-      texturePattern: `https://picsum.photos/seed/${data.texturePattern || 'fashion'}/512/512`
+      texturePattern: matchedPattern ? patternMap[matchedPattern] : null
     };
 
   } catch (error) {
@@ -71,15 +83,81 @@ Return a JSON object with:
 };
 
 export const generateDesignFromImage = async (imageFile: File): Promise<AiResponse> => {
-   // Simulating image analysis. 
-   // In a real implementation: Convert File to base64, send to gemini-2.5-flash-image with a prompt.
-   await new Promise(resolve => setTimeout(resolve, 2000));
-   
-   return {
-     suggestedColor: "#3B82F6",
-     designDescription: "Dianalisis dari gambar referensi: Gaya minimalis dengan aksen biru.",
-     texturePattern: "https://picsum.photos/seed/blue/512/512"
-   };
+  if (!process.env.API_KEY) {
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    return {
+      suggestedColor: "#3B82F6",
+      designDescription: "Dianalisis dari gambar referensi (Mode Demo): Gaya minimalis dengan aksen biru.",
+      texturePattern: null
+    };
+  }
+
+  try {
+    // Convert image to base64
+    const reader = new FileReader();
+    const base64Promise = new Promise<string>((resolve) => {
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(imageFile);
+    });
+    const base64Image = await base64Promise;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: [
+        {
+          parts: [
+            { text: `Analyze this fashion design reference image. Extract:
+1. Dominant color (hex code)
+2. Design style and description (Indonesian, 2-3 sentences)
+3. Pattern type (keywords: jersey-knit, batik-modern, stripes, floral, geometric, plain, denim, cotton)
+
+Return JSON format.` },
+            { inlineData: { mimeType: imageFile.type, data: base64Image.split(',')[1] } }
+          ]
+        }
+      ],
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            suggestedColor: { type: Type.STRING },
+            designDescription: { type: Type.STRING },
+            texturePattern: { type: Type.STRING }
+          }
+        }
+      }
+    });
+
+    const data = JSON.parse(response.text || '{}');
+    
+    const patternMap: Record<string, string> = {
+      'jersey-knit': 'https://images.unsplash.com/photo-1558769132-cb1aea1f3f69?w=512&h=512&fit=crop',
+      'batik-modern': 'https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=512&h=512&fit=crop',
+      'stripes': 'https://images.unsplash.com/photo-1562137369-1a1a0bc66744?w=512&h=512&fit=crop',
+      'floral': 'https://images.unsplash.com/photo-1604695573706-53170668f6a6?w=512&h=512&fit=crop',
+      'geometric': 'https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=512&h=512&fit=crop',
+      'plain': null,
+      'denim': 'https://images.unsplash.com/photo-1582552938357-32b906df40cb?w=512&h=512&fit=crop',
+      'cotton': 'https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?w=512&h=512&fit=crop'
+    };
+    
+    const patternKey = (data.texturePattern || 'plain').toLowerCase();
+    const matchedPattern = Object.keys(patternMap).find(key => patternKey.includes(key));
+
+    return {
+      suggestedColor: data.suggestedColor || "#3B82F6",
+      designDescription: data.designDescription || "Dianalisis dari gambar referensi.",
+      texturePattern: matchedPattern ? patternMap[matchedPattern] : null
+    };
+  } catch (error) {
+    console.error("Image analysis error:", error);
+    return {
+      suggestedColor: "#3B82F6",
+      designDescription: "Gagal menganalisis gambar. Gunakan prompt teks untuk hasil optimal.",
+      texturePattern: null
+    };
+  }
 };
 
 export const chatWithAiAssistant = async (history: {role: string, content: string}[], newMessage: string): Promise<string> => {

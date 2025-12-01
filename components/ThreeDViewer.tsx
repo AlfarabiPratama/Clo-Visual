@@ -477,6 +477,13 @@ const ThreeDViewer = forwardRef(function ThreeDViewer(
   { color, textureUrl, garmentType, fit, textureScale, customModelUrl, autoRotate, onLoadComplete }: ThreeDViewerProps,
   ref: React.ForwardedRef<HTMLCanvasElement>
 ) {
+  // Notify parent that viewer is ready after mount
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      onLoadComplete?.();
+    }, 800); // Give canvas time to initialize
+    return () => clearTimeout(timer);
+  }, [onLoadComplete]);
   
   const renderGarment = () => {
     if (customModelUrl) {
