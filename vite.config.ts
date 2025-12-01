@@ -9,8 +9,8 @@ export default defineConfig(({ mode }) => {
         port: 3000,
         host: '0.0.0.0',
       },
-      // Base path untuk GitHub Pages (repository name)
-      base: '/Clo-Visual/',
+      // Base path: production (GitHub Pages) vs development (local)
+      base: mode === 'production' ? '/Clo-Visual/' : '/',
       plugins: [react()],
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
