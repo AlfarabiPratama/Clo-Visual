@@ -780,7 +780,7 @@ const ThreeDViewer = forwardRef(function ThreeDViewer(
 
   return (
     <div className="w-full h-full rounded-lg overflow-hidden relative shadow-inner" style={backgroundStyle}>
-      <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-1 pointer-events-none">
+      <div className="absolute bottom-4 right-4 z-10 flex flex-col items-end gap-1 pointer-events-none">
         <div className={`px-3 py-1 rounded-full text-xs font-medium shadow-sm border ${
           viewMode === 'stylized' 
             ? 'bg-purple-100/90 backdrop-blur-sm text-purple-700 border-purple-200'
