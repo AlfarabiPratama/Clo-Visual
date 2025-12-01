@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React, { useRef, useLayoutEffect, useEffect, ReactNode, forwardRef, Component } from 'react';
-import { Canvas, useFrame, useLoader, extend } from '@react-three/fiber';
+import { Canvas, useFrame, useLoader, extend, useThree } from '@react-three/fiber';
 import { OrbitControls, useTexture, ContactShadows, Center, useGLTF } from '@react-three/drei';
 // import { EffectComposer, SSAO } from '@react-three/postprocessing';
 import * as THREE from 'three';
@@ -665,6 +665,35 @@ const ProceduralDress: React.FC<{ color: string; textureUrl: string | null; fit:
   );
 };
 
+// --- CAMERA CONTROLLER ---
+const CameraController: React.FC<{ preset: 'front' | 'three-quarter' | 'back' }> = ({ preset }) => {
+  const { camera } = useThree();
+  
+  useEffect(() => {
+    const positions = {
+      'front': [0, 0.5, 4],
+      'three-quarter': [2, 0.8, 3.5],
+      'back': [0, 0.5, -4]
+    };
+    
+    const targetPosition = positions[preset];
+    
+    // Smooth camera transition
+    const animate = () => {
+      camera.position.lerp(new THREE.Vector3(...targetPosition), 0.1);
+      camera.lookAt(0, 0, 0); // Always look at center
+      
+      if (camera.position.distanceTo(new THREE.Vector3(...targetPosition)) > 0.01) {
+        requestAnimationFrame(animate);
+      }
+    };
+    
+    animate();
+  }, [preset, camera]);
+  
+  return null;
+};
+
 // --- MAIN COMPONENT ---
 // Forward ref used to expose the canvas element for screenshotting
 const ThreeDViewer = forwardRef(function ThreeDViewer(
@@ -746,14 +775,16 @@ const ThreeDViewer = forwardRef(function ThreeDViewer(
           toneMappingExposure: 1.1,
           outputEncoding: 3001
         }}
-        camera={{ position: [1.8, 1.0, 3.5], fov: 42 }}
-        onCreated={({ gl }) => {
+        camera={{ position: [2, 0.8, 3.5], fov: 42 }}
+        onCreated={({ gl, camera }) => {
            // Attach the canvas element to the forwarded ref
            if (typeof ref === 'function') {
              ref(gl.domElement);
            } else if (ref) {
              ref.current = gl.domElement;
            }
+           // Make camera look at center
+           camera.lookAt(0, 0, 0);
         }}
         style={{ background: 'linear-gradient(135deg, #0b1120 0%, #1e293b 50%, #0f172a 100%)' }}
       >
@@ -790,6 +821,8 @@ const ThreeDViewer = forwardRef(function ThreeDViewer(
           <pointLight position={[-2, 1, 3]} intensity={0.4} distance={5} decay={2} />
           <pointLight position={[0, -0.5, 2]} intensity={0.25} distance={3} decay={2} color="#ffeedd" />
           
+          <CameraController preset={cameraPreset} />
+          
           <Center top>
             {renderGarment()}
           </Center>
@@ -820,6 +853,7 @@ const ThreeDViewer = forwardRef(function ThreeDViewer(
           autoRotate={autoRotate ?? false} 
           autoRotateSpeed={1.8}
           makeDefault 
+          target={[0, 0, 0]}
           minPolarAngle={Math.PI / 6}
           maxPolarAngle={Math.PI / 1.8}
           minDistance={2.5}
