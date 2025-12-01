@@ -37,3 +37,29 @@ export interface AiResponse {
   designDescription: string;
   texturePattern: string; // In a real app, this would be a URL or base64
 }
+
+export interface BatchDesignVariation {
+  id: number;
+  suggestedColor: string;
+  designDescription: string;
+  texturePattern: string | null;
+  styleName: string; // e.g., "Streetwear", "Premium", "Sporty"
+}
+
+export interface BatchDesignResult {
+  variations: BatchDesignVariation[];
+  originalPrompt: string;
+}
+
+export interface ColorInfo {
+  hex: string;
+  name: string;
+  psychology: string; // e.g., "Energetic, youthful"
+}
+
+export interface ColorPaletteResult {
+  colors: ColorInfo[];
+  paletteDescription: string;
+  targetMarket: string;
+  seasonRecommendation: string;
+}

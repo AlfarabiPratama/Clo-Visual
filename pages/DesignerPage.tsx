@@ -2,11 +2,11 @@
 import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useLocation } from '../components/Navbar';
 import { Download, Save, Wand2, Upload, MessageSquare, X, Send, Box, Undo, Redo, Sparkles } from 'lucide-react';
-import { DesignState, GarmentType, ChatMessage, FitType } from '../types';
+import { DesignState, GarmentType, ChatMessage, FitType, BatchDesignResult, BatchDesignVariation, ColorPaletteResult } from '../types';
 // Lazy load komponen berat 3D viewer
 const ThreeDViewer = lazy(() => import('../components/ThreeDViewer'));
 import TemplateBrowser from '../components/TemplateBrowser';
-import { generateDesignFromText, generateDesignFromImage, chatWithAiAssistant } from '../services/aiService';
+import { generateDesignFromText, generateDesignFromImage, chatWithAiAssistant, generateBatchDesigns, generateColorPalette } from '../services/aiService';
 import { DesignTemplate } from '../data/templateLibrary';
 
 const DesignerPage: React.FC = () => {
@@ -62,6 +62,14 @@ const DesignerPage: React.FC = () => {
 
   // Template Browser State
   const [isTemplateBrowserOpen, setIsTemplateBrowserOpen] = useState(false);
+
+  // Batch Generation State
+  const [batchResult, setBatchResult] = useState<BatchDesignResult | null>(null);
+  const [isBatchGenerating, setIsBatchGenerating] = useState(false);
+  
+  // Color Palette State
+  const [colorPalette, setColorPalette] = useState<ColorPaletteResult | null>(null);
+  const [isPaletteGenerating, setIsPaletteGenerating] = useState(false);
 
   // Ref for the 3D Canvas (for export)
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -233,6 +241,77 @@ const DesignerPage: React.FC = () => {
     }
   };
 
+  const handleBatchGenerate = async () => {
+    if (!promptText.trim()) {
+      setStatusMessage('⚠️ Masukkan prompt terlebih dahulu');
+      setTimeout(() => setStatusMessage(''), 3000);
+      return;
+    }
+
+    setIsBatchGenerating(true);
+    setIsModelLoading(true);
+    setStatusMessage('🎨 Generating 5 design variations...');
+
+    try {
+      const result = await generateBatchDesigns(promptText);
+      setBatchResult(result);
+      setStatusMessage('✅ 5 variations ready! Click to apply.');
+      setTimeout(() => setIsModelLoading(false), 500);
+    } catch (error) {
+      console.error('Batch generation error:', error);
+      setStatusMessage('❌ Failed to generate variations');
+      setIsModelLoading(false);
+    } finally {
+      setIsBatchGenerating(false);
+      setTimeout(() => setStatusMessage(''), 5000);
+    }
+  };
+
+  const handleApplyVariation = (variation: BatchDesignVariation) => {
+    const current = designStateRef.current;
+    const newState: DesignState = {
+      ...current,
+      color: variation.suggestedColor,
+      textureUrl: variation.texturePattern,
+      description: variation.designDescription
+    };
+    
+    applyDesignChange(newState);
+    setStatusMessage(`✅ ${variation.styleName} style applied!`);
+    setTimeout(() => setStatusMessage(''), 3000);
+  };
+
+  const handleGenerateColorPalette = async () => {
+    const context = promptText.trim() || designState.description || 'Modern fashion collection';
+    
+    setIsPaletteGenerating(true);
+    setStatusMessage('🎨 Generating color palette...');
+
+    try {
+      const result = await generateColorPalette(context);
+      setColorPalette(result);
+      setStatusMessage('✅ Color palette ready!');
+    } catch (error) {
+      console.error('Palette generation error:', error);
+      setStatusMessage('❌ Failed to generate palette');
+    } finally {
+      setIsPaletteGenerating(false);
+      setTimeout(() => setStatusMessage(''), 3000);
+    }
+  };
+
+  const handleApplyColor = (hex: string, colorName: string) => {
+    const current = designStateRef.current;
+    const newState: DesignState = {
+      ...current,
+      color: hex
+    };
+    
+    applyDesignChange(newState);
+    setStatusMessage(`✅ ${colorName} applied!`);
+    setTimeout(() => setStatusMessage(''), 2000);
+  };
+
   const handleExport = (type: 'png' | 'glb') => {
     if (type === 'png') {
       if (canvasRef.current) {
@@ -339,14 +418,112 @@ const DesignerPage: React.FC = () => {
             <div className="mt-1 text-xs text-gray-500 bg-blue-50 p-2 rounded border border-blue-100">
               💡 <strong>Tips AI Maksimal:</strong> Semakin detail prompt, semakin realistis hasilnya. Sebutkan material, warna spesifik, dan style pattern.
             </div>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <button 
+                onClick={handleTextGeneration}
+                disabled={isGenerating}
+                className={`flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${isGenerating ? 'bg-slate-400' : 'bg-slate-600 hover:bg-slate-700'}`}
+              >
+                <Wand2 className="h-4 w-4 mr-2" />
+                {isGenerating ? 'Generating...' : 'Single Design'}
+              </button>
+              <button 
+                onClick={handleBatchGenerate}
+                disabled={isBatchGenerating}
+                className={`flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${isBatchGenerating ? 'bg-purple-400' : 'bg-purple-600 hover:bg-purple-700'}`}
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                {isBatchGenerating ? 'Generating...' : '5 Variations'}
+              </button>
+            </div>
+          </div>
+
+          {/* Batch Design Variations */}
+          {batchResult && (
+            <div className="mt-4 p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-bold text-purple-900">
+                  🎨 5 Design Variations
+                </h3>
+                <button 
+                  onClick={() => setBatchResult(null)}
+                  className="text-xs text-purple-600 hover:text-purple-800"
+                >
+                  Clear
+                </button>
+              </div>
+              <p className="text-xs text-purple-700 mb-3 italic">"{batchResult.originalPrompt}"</p>
+              <div className="grid grid-cols-1 gap-2">
+                {batchResult.variations.map((variation) => (
+                  <button
+                    key={variation.id}
+                    onClick={() => handleApplyVariation(variation)}
+                    className="p-3 bg-white hover:bg-purple-50 rounded-lg border border-purple-200 hover:border-purple-400 transition-all text-left group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-10 h-10 rounded-lg border-2 border-white shadow-md flex-shrink-0"
+                        style={{ backgroundColor: variation.suggestedColor }}
+                      ></div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-bold text-purple-900 mb-1">
+                          {variation.styleName}
+                        </div>
+                        <div className="text-xs text-gray-600 line-clamp-2">
+                          {variation.designDescription}
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Color Palette Generator */}
+          <div className="mt-4 p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-lg border border-blue-200">
+            <h3 className="text-sm font-bold text-blue-900 mb-2">🎨 AI Color Palette Generator</h3>
             <button 
-              onClick={handleTextGeneration}
-              disabled={isGenerating}
-              className={`mt-2 w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${isGenerating ? 'bg-slate-400' : 'bg-slate-600 hover:bg-slate-700'}`}
+              onClick={handleGenerateColorPalette}
+              disabled={isPaletteGenerating}
+              className={`w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${isPaletteGenerating ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'}`}
             >
-              <Wand2 className="h-4 w-4 mr-2" />
-              {isGenerating ? 'Generating...' : 'Generate Design'}
+              <Sparkles className="h-4 w-4 mr-2" />
+              {isPaletteGenerating ? 'Generating...' : 'Generate Smart Palette'}
             </button>
+            
+            {colorPalette && (
+              <div className="mt-3">
+                <div className="text-xs text-blue-800 mb-2">
+                  <strong>{colorPalette.paletteDescription}</strong>
+                </div>
+                <div className="text-xs text-blue-600 mb-3 space-y-1">
+                  <div>🎯 <strong>Target:</strong> {colorPalette.targetMarket}</div>
+                  <div>📅 <strong>Season:</strong> {colorPalette.seasonRecommendation}</div>
+                </div>
+                <div className="grid grid-cols-5 gap-2">
+                  {colorPalette.colors.map((color, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleApplyColor(color.hex, color.name)}
+                      className="group relative"
+                      title={`${color.name}\n${color.psychology}`}
+                    >
+                      <div 
+                        className="w-full h-12 rounded-lg border-2 border-white shadow-md hover:scale-110 transition-transform cursor-pointer"
+                        style={{ backgroundColor: color.hex }}
+                      ></div>
+                      <div className="text-xs text-center mt-1 text-gray-700 font-medium truncate">
+                        {color.name}
+                      </div>
+                      <div className="absolute hidden group-hover:block bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-xs rounded shadow-lg whitespace-nowrap z-10">
+                        {color.psychology}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="border-t border-gray-100 my-4"></div>

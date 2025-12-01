@@ -1,12 +1,24 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { AiResponse } from "../types";
+import { AiResponse, BatchDesignResult, ColorPaletteResult } from "../types";
+
+// AI Provider Configuration
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const DEEPSEEK_API_KEY = import.meta.env.VITE_DEEPSEEK_API_KEY;
+const DEEPSEEK_BASE_URL = 'https://api.deepseek.com/v1';
 
 // Initialize Gemini
-// API key will be removed from .env.local and set as environment variable in Vercel
-// For local development, you can still use VITE_GEMINI_API_KEY
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
+const geminiAI = GEMINI_API_KEY ? new GoogleGenAI({ apiKey: GEMINI_API_KEY }) : null;
+
+// Available AI providers
+type AIProvider = 'gemini' | 'deepseek' | 'mock';
+
+// Determine which provider to use (priority: Gemini > DeepSeek > Mock)
+const getActiveProvider = (): AIProvider => {
+  if (GEMINI_API_KEY && geminiAI) return 'gemini';
+  if (DEEPSEEK_API_KEY) return 'deepseek';
+  return 'mock';
+};
 
 // Mock data to use if API key is missing or for rapid prototyping
 const MOCK_DESIGN_RESPONSE: AiResponse = {
@@ -15,8 +27,35 @@ const MOCK_DESIGN_RESPONSE: AiResponse = {
   texturePattern: "https://picsum.photos/512/512?random=1" // Placeholder texture
 };
 
+// DeepSeek API Call Helper
+const callDeepSeekAPI = async (messages: Array<{role: string, content: string}>, responseFormat?: 'json'): Promise<string> => {
+  const response = await fetch(`${DEEPSEEK_BASE_URL}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${DEEPSEEK_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: 'deepseek-chat',
+      messages: messages,
+      temperature: 0.7,
+      max_tokens: 2000,
+      ...(responseFormat === 'json' ? { response_format: { type: 'json_object' } } : {})
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`DeepSeek API error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.choices[0]?.message?.content || '';
+};
+
 export const generateDesignFromText = async (prompt: string): Promise<AiResponse> => {
-  if (!apiKey || !ai) {
+  const provider = getActiveProvider();
+  
+  if (provider === 'mock') {
     console.warn("No API Key found. Returning mock data.");
     await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate delay
     return MOCK_DESIGN_RESPONSE;
@@ -28,9 +67,9 @@ export const generateDesignFromText = async (prompt: string): Promise<AiResponse
       setTimeout(() => reject(new Error('AI request timeout')), 15000)
     );
 
-    const apiPromise = ai!.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: `You are a professional fashion textile designer. Create a realistic fabric design based on this request:
+    let apiPromise: Promise<any>;
+
+    const designPrompt = `You are a professional fashion textile designer. Create a realistic fabric design based on this request:
 
 USER REQUEST: "${prompt}"
 
@@ -56,22 +95,41 @@ Return JSON with:
 EXAMPLES:
 - "T-shirt hitam dengan motif geometric" → suggestedColor: "#000000", texturePattern: "geometric"
 - "Hoodie putih polos" → suggestedColor: "#FFFFFF", texturePattern: "plain"
-- "Kaos navy blue dengan pattern batik" → suggestedColor: "#000080", texturePattern: "batik-modern"`,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            suggestedColor: { type: Type.STRING },
-            designDescription: { type: Type.STRING },
-            texturePattern: { type: Type.STRING, description: "MUST be one of: jersey-knit, batik-modern, stripes, floral, geometric, plain, denim, cotton" }
+- "Kaos navy blue dengan pattern batik" → suggestedColor: "#000080", texturePattern: "batik-modern"`;
+
+    if (provider === 'gemini') {
+      apiPromise = geminiAI!.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: designPrompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              suggestedColor: { type: Type.STRING },
+              designDescription: { type: Type.STRING },
+              texturePattern: { type: Type.STRING, description: "MUST be one of: jersey-knit, batik-modern, stripes, floral, geometric, plain, denim, cotton" }
+            }
           }
         }
-      }
-    });
+      });
+    } else {
+      // DeepSeek provider
+      apiPromise = callDeepSeekAPI([
+        { role: 'system', content: 'You are a professional fashion textile designer. Always return valid JSON responses.' },
+        { role: 'user', content: designPrompt }
+      ], 'json');
+    }
 
     const response = await Promise.race([apiPromise, timeoutPromise]) as any;
-    const data = JSON.parse(response.text || '{}');
+    
+    let data: any;
+    if (provider === 'gemini') {
+      data = JSON.parse(response.text || '{}');
+    } else {
+      // DeepSeek returns string directly from our helper
+      data = JSON.parse(response || '{}');
+    }
     
     console.log('[AI Response]', data); // Debug log to see what Gemini returns
     
@@ -166,11 +224,17 @@ EXAMPLES:
 };
 
 export const generateDesignFromImage = async (imageFile: File): Promise<AiResponse> => {
-  if (!apiKey || !ai) {
+  const provider = getActiveProvider();
+  
+  // Note: DeepSeek may not support image analysis, so we'll use Gemini only for now
+  // or fall back to mock if Gemini is not available
+  if (provider === 'mock' || provider === 'deepseek') {
     await new Promise(resolve => setTimeout(resolve, 2000));
     return {
       suggestedColor: "#3B82F6",
-      designDescription: "Dianalisis dari gambar referensi (Mode Demo): Gaya minimalis dengan aksen biru.",
+      designDescription: provider === 'deepseek' 
+        ? "Analisis gambar memerlukan Gemini API. Gunakan Text-to-Design untuk hasil optimal."
+        : "Dianalisis dari gambar referensi (Mode Demo): Gaya minimalis dengan aksen biru.",
       texturePattern: null
     };
   }
@@ -184,7 +248,7 @@ export const generateDesignFromImage = async (imageFile: File): Promise<AiRespon
     });
     const base64Image = await base64Promise;
 
-    const response = await ai.models.generateContent({
+    const response = await geminiAI!.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: [
         {
@@ -244,7 +308,9 @@ Return JSON format.` },
 };
 
 export const chatWithAiAssistant = async (history: {role: string, content: string}[], newMessage: string): Promise<string> => {
-  if (!apiKey || !ai) {
+  const provider = getActiveProvider();
+  
+  if (provider === 'mock') {
     await new Promise(resolve => setTimeout(resolve, 1000));
     return "💡 **Mode Demo Aktif**\n\nSaya bisa membantu Anda dengan:\n• Saran warna dan kombinasi palet\n• Rekomendasi jenis kain untuk berbagai gaya\n• Tips desain untuk target pasar tertentu\n• Tren fashion terkini\n\nGunakan panel 'Text to Design' di sebelah kiri untuk membuat desain! Contoh: \"T-shirt cotton putih dengan geometric pattern hitam\"";
   }
@@ -280,25 +346,46 @@ Anda: "🎨 Untuk target anak muda, saya sarankan:\n\n**Warna:** Navy blue (#1e2
 
 PENTING: Jawab dalam Bahasa Indonesia kecuali user minta English.`;
 
-    const chatPromise = ai!.models.generateContent({
-      model: 'gemini-2.5-flash',
-      systemInstruction: systemPrompt,
-      contents: [
-        // Convert history to proper format
+    let chatPromise: Promise<any>;
+    
+    if (provider === 'gemini') {
+      chatPromise = geminiAI!.models.generateContent({
+        model: 'gemini-2.5-flash',
+        systemInstruction: systemPrompt,
+        contents: [
+          // Convert history to proper format
+          ...history.map(h => ({
+            role: h.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text: h.content }]
+          })),
+          // Add new message
+          {
+            role: 'user',
+            parts: [{ text: newMessage }]
+          }
+        ]
+      });
+    } else {
+      // DeepSeek provider
+      const messages = [
+        { role: 'system', content: systemPrompt },
         ...history.map(h => ({
-          role: h.role === 'assistant' ? 'model' : 'user',
-          parts: [{ text: h.content }]
+          role: h.role === 'assistant' ? 'assistant' : 'user',
+          content: h.content
         })),
-        // Add new message
-        {
-          role: 'user',
-          parts: [{ text: newMessage }]
-        }
-      ]
-    });
+        { role: 'user', content: newMessage }
+      ];
+      chatPromise = callDeepSeekAPI(messages);
+    }
 
     const response = await Promise.race([chatPromise, timeoutPromise]) as any;
-    const replyText = response.text || "Maaf, saya tidak dapat menghasilkan respon saat ini. Silakan coba lagi.";
+    
+    let replyText: string;
+    if (provider === 'gemini') {
+      replyText = response.text || "Maaf, saya tidak dapat menghasilkan respon saat ini. Silakan coba lagi.";
+    } else {
+      replyText = response || "Maaf, saya tidak dapat menghasilkan respon saat ini. Silakan coba lagi.";
+    }
     
     console.log('[Chat AI] Response:', replyText.substring(0, 100) + '...');
     return replyText;
@@ -316,5 +403,235 @@ PENTING: Jawab dalam Bahasa Indonesia kecuali user minta English.`;
     }
     
     return "❌ Maaf, saya sedang mengalami gangguan. Silakan coba lagi atau gunakan panel 'Text to Design' untuk membuat desain langsung.";
+  }
+};
+
+// Generate 5 design variations from a single prompt
+export const generateBatchDesigns = async (prompt: string): Promise<BatchDesignResult> => {
+  const provider = getActiveProvider();
+  
+  if (provider === 'mock') {
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    return {
+      originalPrompt: prompt,
+      variations: [
+        {
+          id: 1,
+          styleName: "Streetwear",
+          suggestedColor: "#1a1a1a",
+          designDescription: "Bold dan edgy dengan sentuhan urban street culture",
+          texturePattern: "https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=512&h=512&fit=crop"
+        },
+        {
+          id: 2,
+          styleName: "Premium",
+          suggestedColor: "#2c3e50",
+          designDescription: "Elegant dan sophisticated untuk target market premium",
+          texturePattern: null
+        },
+        {
+          id: 3,
+          styleName: "Sporty",
+          suggestedColor: "#e74c3c",
+          designDescription: "Dynamic dan energetic untuk aktivitas olahraga",
+          texturePattern: "https://images.unsplash.com/photo-1562137369-1a1a0bc66744?w=512&h=512&fit=crop"
+        },
+        {
+          id: 4,
+          styleName: "Casual",
+          suggestedColor: "#3498db",
+          designDescription: "Comfortable dan versatile untuk daily wear",
+          texturePattern: null
+        },
+        {
+          id: 5,
+          styleName: "Minimalist",
+          suggestedColor: "#ecf0f1",
+          designDescription: "Clean dan simple dengan fokus pada kualitas material",
+          texturePattern: null
+        }
+      ]
+    };
+  }
+
+  try {
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Batch generation timeout')), 20000)
+    );
+
+    let batchPromise: Promise<any>;
+    
+    const systemPrompt = `Generate 5 different design variations for a garment based on user prompt.
+Each variation should have a distinct style (Streetwear, Premium, Sporty, Casual, Minimalist).
+Return JSON array with: styleName, suggestedColor (hex), designDescription (Indonesian, concise), texturePattern (keywords: jersey-knit, batik-modern, stripes, floral, geometric, plain, denim, cotton).
+Make each variation unique and appealing.`;
+
+    if (provider === 'gemini') {
+      batchPromise = geminiAI!.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: [{ parts: [{ text: `${systemPrompt}\n\nUser prompt: "${prompt}"` }] }],
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              variations: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    styleName: { type: Type.STRING },
+                    suggestedColor: { type: Type.STRING },
+                    designDescription: { type: Type.STRING },
+                    texturePattern: { type: Type.STRING }
+                  }
+                }
+              }
+            }
+          }
+        }
+      });
+    } else {
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `Generate 5 variations for: "${prompt}"` }
+      ];
+      batchPromise = callDeepSeekAPI(messages, 'json');
+    }
+
+    const response = await Promise.race([batchPromise, timeoutPromise]) as any;
+    
+    let data: any;
+    if (provider === 'gemini') {
+      data = JSON.parse(response.text || '{}');
+    } else {
+      data = JSON.parse(response || '{}');
+    }
+
+    const patternMap: Record<string, string> = {
+      'jersey-knit': 'https://images.unsplash.com/photo-1558769132-cb1aea1f3f69?w=512&h=512&fit=crop',
+      'batik-modern': 'https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=512&h=512&fit=crop',
+      'stripes': 'https://images.unsplash.com/photo-1562137369-1a1a0bc66744?w=512&h=512&fit=crop',
+      'floral': 'https://images.unsplash.com/photo-1604695573706-53170668f6a6?w=512&h=512&fit=crop',
+      'geometric': 'https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=512&h=512&fit=crop',
+      'plain': null,
+      'denim': 'https://images.unsplash.com/photo-1582552938357-32b906df40cb?w=512&h=512&fit=crop',
+      'cotton': 'https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?w=512&h=512&fit=crop'
+    };
+
+    const variations = (data.variations || []).map((v: any, index: number) => {
+      const patternKey = (v.texturePattern || 'plain').toLowerCase();
+      const matchedPattern = Object.keys(patternMap).find(key => patternKey.includes(key));
+      
+      return {
+        id: index + 1,
+        styleName: v.styleName || `Style ${index + 1}`,
+        suggestedColor: v.suggestedColor || '#3B82F6',
+        designDescription: v.designDescription || 'Variasi desain menarik',
+        texturePattern: matchedPattern ? patternMap[matchedPattern] : null
+      };
+    });
+
+    return {
+      originalPrompt: prompt,
+      variations: variations.slice(0, 5)
+    };
+    
+  } catch (error: any) {
+    console.error("Batch generation error:", error);
+    throw error;
+  }
+};
+
+// Generate harmonious color palette with psychology insights
+export const generateColorPalette = async (context: string): Promise<ColorPaletteResult> => {
+  const provider = getActiveProvider();
+  
+  if (provider === 'mock') {
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    return {
+      paletteDescription: "Palet warna musim panas yang fresh dan energetic",
+      targetMarket: "Gen Z dan Millennial (18-35 tahun)",
+      seasonRecommendation: "Perfect untuk koleksi Spring/Summer 2025",
+      colors: [
+        { hex: "#3B82F6", name: "Ocean Blue", psychology: "Trust, calm, professional" },
+        { hex: "#F59E0B", name: "Sunset Orange", psychology: "Energy, enthusiasm, warmth" },
+        { hex: "#10B981", name: "Mint Green", psychology: "Fresh, growth, harmony" },
+        { hex: "#EC4899", name: "Coral Pink", psychology: "Playful, youthful, friendly" },
+        { hex: "#F3F4F6", name: "Cloud White", psychology: "Clean, minimal, spacious" }
+      ]
+    };
+  }
+
+  try {
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Color palette timeout')), 15000)
+    );
+
+    let palettePromise: Promise<any>;
+    
+    const systemPrompt = `Generate a harmonious 5-color palette for fashion design based on context.
+Include color psychology and market insights.
+Return JSON with: colors (array of {hex, name, psychology}), paletteDescription (Indonesian), targetMarket, seasonRecommendation.
+Make it professional and trendy for 2025.`;
+
+    if (provider === 'gemini') {
+      palettePromise = geminiAI!.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: [{ parts: [{ text: `${systemPrompt}\n\nContext: "${context}"` }] }],
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              paletteDescription: { type: Type.STRING },
+              targetMarket: { type: Type.STRING },
+              seasonRecommendation: { type: Type.STRING },
+              colors: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    hex: { type: Type.STRING },
+                    name: { type: Type.STRING },
+                    psychology: { type: Type.STRING }
+                  }
+                }
+              }
+            }
+          }
+        }
+      });
+    } else {
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `Generate color palette for: "${context}"` }
+      ];
+      palettePromise = callDeepSeekAPI(messages, 'json');
+    }
+
+    const response = await Promise.race([palettePromise, timeoutPromise]) as any;
+    
+    let data: any;
+    if (provider === 'gemini') {
+      data = JSON.parse(response.text || '{}');
+    } else {
+      data = JSON.parse(response || '{}');
+    }
+
+    return {
+      paletteDescription: data.paletteDescription || "Palet warna harmonis",
+      targetMarket: data.targetMarket || "Target market umum",
+      seasonRecommendation: data.seasonRecommendation || "Cocok untuk berbagai musim",
+      colors: (data.colors || []).slice(0, 5).map((c: any) => ({
+        hex: c.hex || '#3B82F6',
+        name: c.name || 'Color',
+        psychology: c.psychology || 'Versatile'
+      }))
+    };
+    
+  } catch (error: any) {
+    console.error("Color palette error:", error);
+    throw error;
   }
 };
