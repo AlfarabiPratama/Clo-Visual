@@ -102,18 +102,23 @@ EXAMPLES:
     
     // Flexible pattern matching: try exact match first, then substring match
     const patternKey = (data.texturePattern || 'plain').toLowerCase().trim();
-    let matchedPattern = patternMap[patternKey]; // Exact match
+    let textureUrl = patternMap[patternKey]; // Exact match
     
-    if (matchedPattern === undefined) {
+    if (textureUrl === undefined) {
       // Substring match
       const foundKey = Object.keys(patternMap).find(key => patternKey.includes(key) || key.includes(patternKey));
-      matchedPattern = foundKey ? patternMap[foundKey] : null;
+      textureUrl = foundKey ? patternMap[foundKey] : null;
     }
+    
+    console.log('[Pattern Matching]', { 
+      aiReturned: patternKey, 
+      matchedTexture: textureUrl || 'solid color only' 
+    });
     
     return {
       suggestedColor: data.suggestedColor || "#ffffff",
       designDescription: data.designDescription || "Desain kustom berdasarkan permintaan.",
-      texturePattern: matchedPattern ? patternMap[matchedPattern] : null
+      texturePattern: textureUrl
     };
 
   } catch (error: any) {
