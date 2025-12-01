@@ -1,9 +1,9 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { useLocation } from '../components/Navbar';
 import { Download, Save, Wand2, Upload, MessageSquare, X, Send, Box, Undo, Redo, Sparkles } from 'lucide-react';
 import { DesignState, GarmentType, ChatMessage, FitType } from '../types';
-import React, { lazy, Suspense, useState, useEffect, useRef } from 'react';
+// Lazy load komponen berat 3D viewer
 const ThreeDViewer = lazy(() => import('../components/ThreeDViewer'));
 import TemplateBrowser from '../components/TemplateBrowser';
 import { generateDesignFromText, generateDesignFromImage, chatWithAiAssistant } from '../services/aiService';
