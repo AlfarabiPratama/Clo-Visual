@@ -21,27 +21,21 @@ const LoginPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-
-      // Simple validation
+      // Validate form
       if (!formData.email || !formData.password) {
         setError('Email dan password harus diisi');
         setIsLoading(false);
         return;
       }
 
-      // For demo purposes, accept any email/password
-      // In production, this would validate against a backend
-      const user = {
-        id: Date.now().toString(),
-        email: formData.email,
-        name: formData.email.split('@')[0],
-        avatar: `https://ui-avatars.com/api/?name=${formData.email.split('@')[0]}&background=475569&color=fff`,
-      };
-
-      login(user);
-      navigate('/projects');
+      // Use AuthContext login function
+      const success = await login(formData.email, formData.password);
+      
+      if (success) {
+        navigate('/projects');
+      } else {
+        setError('Email atau password salah');
+      }
     } catch (err) {
       setError('Terjadi kesalahan. Silakan coba lagi.');
     } finally {
@@ -49,15 +43,20 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  const handleDemoLogin = () => {
-    const demoUser = {
-      id: 'demo-user',
-      email: 'demo@clovisual.com',
-      name: 'Demo User',
-      avatar: 'https://ui-avatars.com/api/?name=Demo+User&background=475569&color=fff',
-    };
-    login(demoUser);
-    navigate('/projects');
+  const handleDemoLogin = async () => {
+    setIsLoading(true);
+    try {
+      const success = await login('demo@clovisual.com', 'demo123');
+      if (success) {
+        navigate('/projects');
+      } else {
+        setError('Demo login gagal');
+      }
+    } catch (err) {
+      setError('Terjadi kesalahan');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -159,9 +158,13 @@ const LoginPage: React.FC = () => {
               </div>
 
               <div className="text-sm">
-                <a href="#" className="font-medium text-slate-600 hover:text-slate-500">
+                <button
+                  type="button"
+                  onClick={() => alert('Fitur reset password belum tersedia. Untuk demo, gunakan: demo@clovisual.com / demo123')}
+                  className="font-medium text-slate-600 hover:text-slate-500"
+                >
                   Lupa password?
-                </a>
+                </button>
               </div>
             </div>
 
@@ -202,9 +205,12 @@ const LoginPage: React.FC = () => {
         {/* Footer */}
         <p className="text-center text-sm text-gray-600">
           Belum punya akun?{' '}
-          <a href="#" className="font-medium text-slate-600 hover:text-slate-500">
+          <button
+            onClick={() => navigate('/register')}
+            className="font-medium text-slate-600 hover:text-slate-500 underline"
+          >
             Daftar sekarang
-          </a>
+          </button>
         </p>
 
         {/* Note for Presentation */}
