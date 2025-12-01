@@ -75,29 +75,30 @@ EXAMPLES:
     
     console.log('[AI Response]', data); // Debug log to see what Gemini returns
     
-    // Map pattern keywords to realistic fabric textures from Unsplash
-    const patternMap: Record<string, string> = {
-      'jersey-knit': 'https://images.unsplash.com/photo-1558769132-cb1aea1f3f69?w=512&h=512&fit=crop',
-      'jersey': 'https://images.unsplash.com/photo-1558769132-cb1aea1f3f69?w=512&h=512&fit=crop',
-      'knit': 'https://images.unsplash.com/photo-1558769132-cb1aea1f3f69?w=512&h=512&fit=crop',
-      'batik-modern': 'https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=512&h=512&fit=crop',
-      'batik': 'https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=512&h=512&fit=crop',
-      'stripes': 'https://images.unsplash.com/photo-1562137369-1a1a0bc66744?w=512&h=512&fit=crop',
-      'stripe': 'https://images.unsplash.com/photo-1562137369-1a1a0bc66744?w=512&h=512&fit=crop',
-      'garis': 'https://images.unsplash.com/photo-1562137369-1a1a0bc66744?w=512&h=512&fit=crop',
-      'floral': 'https://images.unsplash.com/photo-1604695573706-53170668f6a6?w=512&h=512&fit=crop',
-      'flower': 'https://images.unsplash.com/photo-1604695573706-53170668f6a6?w=512&h=512&fit=crop',
-      'bunga': 'https://images.unsplash.com/photo-1604695573706-53170668f6a6?w=512&h=512&fit=crop',
-      'geometric': 'https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=512&h=512&fit=crop',
-      'geometry': 'https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=512&h=512&fit=crop',
-      'abstract': 'https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=512&h=512&fit=crop',
+    // Map pattern keywords to reliable texture URLs with CORS support
+    // Using picsum.photos as reliable alternative with proper CORS headers
+    const patternMap: Record<string, string | null> = {
+      'jersey-knit': 'https://picsum.photos/seed/jersey/512/512',
+      'jersey': 'https://picsum.photos/seed/jersey/512/512',
+      'knit': 'https://picsum.photos/seed/knit/512/512',
+      'batik-modern': 'https://picsum.photos/seed/batik/512/512',
+      'batik': 'https://picsum.photos/seed/batik/512/512',
+      'stripes': 'https://picsum.photos/seed/stripes/512/512',
+      'stripe': 'https://picsum.photos/seed/stripes/512/512',
+      'garis': 'https://picsum.photos/seed/stripes/512/512',
+      'floral': 'https://picsum.photos/seed/floral/512/512',
+      'flower': 'https://picsum.photos/seed/floral/512/512',
+      'bunga': 'https://picsum.photos/seed/floral/512/512',
+      'geometric': 'https://picsum.photos/seed/geometric/512/512',
+      'geometry': 'https://picsum.photos/seed/geometric/512/512',
+      'abstract': 'https://picsum.photos/seed/abstract/512/512',
       'plain': null, // No texture, solid color only
       'polos': null,
       'solid': null,
-      'denim': 'https://images.unsplash.com/photo-1582552938357-32b906df40cb?w=512&h=512&fit=crop',
-      'jeans': 'https://images.unsplash.com/photo-1582552938357-32b906df40cb?w=512&h=512&fit=crop',
-      'cotton': 'https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?w=512&h=512&fit=crop',
-      'katun': 'https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?w=512&h=512&fit=crop'
+      'denim': 'https://picsum.photos/seed/denim/512/512',
+      'jeans': 'https://picsum.photos/seed/denim/512/512',
+      'cotton': 'https://picsum.photos/seed/cotton/512/512',
+      'katun': 'https://picsum.photos/seed/cotton/512/512'
     };
     
     // Flexible pattern matching: try exact match first, then substring match

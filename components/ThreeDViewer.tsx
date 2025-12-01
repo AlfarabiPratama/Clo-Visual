@@ -172,9 +172,10 @@ const TexturedMaterial: React.FC<{ url: string; color: string; scale: number }> 
   }, [texture, scale, url]);
 
   // Use MeshPhysicalMaterial for realistic fabric rendering
+  // IMPORTANT: Set color to white when texture is present to show true texture colors
   return (
     <meshPhysicalMaterial 
-      color={color} 
+      color="#ffffff"
       map={texture} 
       roughness={0.8}
       metalness={0.0}
