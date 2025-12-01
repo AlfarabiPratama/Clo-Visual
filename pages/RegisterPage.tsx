@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from '../components/Navbar';
 import { useAuth } from '../contexts/AuthContext';
 import { UserPlus, Mail, Lock, User, AlertCircle, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
+import CloLogo from '../components/CloLogo';
 
 const RegisterPage: React.FC = () => {
   const [name, setName] = useState('');
@@ -62,8 +63,8 @@ const RegisterPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <div className="w-16 h-16 bg-slate-600 rounded-2xl flex items-center justify-center shadow-lg">
-            <UserPlus className="w-8 h-8 text-white" />
+          <div className="rounded-2xl shadow-lg">
+            <CloLogo size={64} />
           </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">

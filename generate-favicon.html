@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Favicon.ico</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            text-align: center;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            margin: 20px 0;
+        }
+        button {
+            background: #475569;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        button:hover {
+            background: #334155;
+        }
+        .preview {
+            display: inline-block;
+            margin: 20px;
+        }
+        #instructions {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>Generate CLO Favicon.ico</h1>
+    
+    <div class="preview">
+        <h3>16x16 Preview</h3>
+        <canvas id="canvas16" width="16" height="16"></canvas>
+    </div>
+    
+    <div class="preview">
+        <h3>32x32 Preview</h3>
+        <canvas id="canvas32" width="32" height="32"></canvas>
+    </div>
+    
+    <div class="preview">
+        <h3>64x64 Preview</h3>
+        <canvas id="canvas64" width="64" height="64"></canvas>
+    </div>
+    
+    <div>
+        <button onclick="downloadFavicon(16)">Download 16x16 PNG</button>
+        <button onclick="downloadFavicon(32)">Download 32x32 PNG</button>
+        <button onclick="downloadFavicon(64)">Download 64x64 PNG</button>
+    </div>
+    
+    <div id="instructions">
+        <h3>📋 Cara Menggunakan:</h3>
+        <ol>
+            <li>Klik salah satu tombol "Download" di atas untuk download PNG</li>
+            <li>Buka website <a href="https://convertio.co/png-ico/" target="_blank">Convertio.co/png-ico</a> atau <a href="https://www.icoconverter.com/" target="_blank">ICOConverter.com</a></li>
+            <li>Upload file PNG yang sudah di-download</li>
+            <li>Convert ke ICO format (pilih multi-size: 16x16, 32x32)</li>
+            <li>Download file favicon.ico</li>
+            <li>Ganti file <code>public/favicon.ico</code> dengan file yang baru</li>
+        </ol>
+        <p><strong>Atau gunakan perintah ini jika punya ImageMagick:</strong></p>
+        <code>magick convert favicon-64.png -define icon:auto-resize=64,32,16 favicon.ico</code>
+    </div>
+
+    <script>
+        function drawFavicon(canvas) {
+            const ctx = canvas.getContext('2d');
+            const size = canvas.width;
+            const scale = size / 64;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, size, size);
+            
+            // Create gradient background
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#334155');
+            gradient.addColorStop(1, '#475569');
+            
+            // Draw rounded rectangle background
+            const radius = 12 * scale;
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.roundRect(0, 0, size, size, radius);
+            ctx.fill();
+            
+            // Draw CLO text
+            ctx.fillStyle = 'white';
+            ctx.font = `900 ${22 * scale}px Arial, Helvetica, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.letterSpacing = '-1px';
+            ctx.fillText('CLO', size / 2, (40 * scale));
+            
+            // Draw sparkles
+            const sparkles = [
+                { x: 50, y: 16, r: 2, color: '#60a5fa', opacity: 0.8 },
+                { x: 54, y: 14, r: 1.2, color: '#93c5fd', opacity: 0.7 },
+                { x: 52, y: 20, r: 1, color: '#dbeafe', opacity: 0.9 }
+            ];
+            
+            sparkles.forEach(sparkle => {
+                ctx.globalAlpha = sparkle.opacity;
+                ctx.fillStyle = sparkle.color;
+                ctx.beginPath();
+                ctx.arc(sparkle.x * scale, sparkle.y * scale, sparkle.r * scale, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+        }
+        
+        function downloadFavicon(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            drawFavicon(canvas);
+            
+            canvas.toBlob(blob => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `favicon-${size}.png`;
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        }
+        
+        // Draw previews on page load
+        window.addEventListener('load', () => {
+            drawFavicon(document.getElementById('canvas16'));
+            drawFavicon(document.getElementById('canvas32'));
+            drawFavicon(document.getElementById('canvas64'));
+        });
+    </script>
+</body>
+</html>

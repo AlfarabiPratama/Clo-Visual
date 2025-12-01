@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from '../components/Navbar';
 import { LogIn, Mail, Lock, Eye, EyeOff, Sparkles } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import CloLogo from '../components/CloLogo';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -65,8 +66,8 @@ const LoginPage: React.FC = () => {
         {/* Header */}
         <div className="text-center">
           <div className="flex justify-center">
-            <div className="bg-slate-600 p-3 rounded-xl shadow-lg">
-              <Sparkles className="h-10 w-10 text-white" />
+            <div className="rounded-xl shadow-lg">
+              <CloLogo size={64} />
             </div>
           </div>
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">

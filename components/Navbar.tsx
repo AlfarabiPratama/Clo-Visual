@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Shirt, Menu, X, User, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import CloLogo from './CloLogo';
 
 // --- Minimal Router Implementation (Polyfill for react-router-dom) ---
 interface RouterContextType {
@@ -125,10 +126,8 @@ const Navbar: React.FC = () => {
         <div className="flex justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center gap-2">
-              <div className="bg-slate-600 p-1.5 rounded-lg">
-                <Shirt className="h-6 w-6 text-white" />
-              </div>
-              <span className="font-bold text-xl tracking-tight text-gray-900">Clo Vsual</span>
+              <CloLogo size={36} />
+              <span className="font-bold text-xl tracking-tight text-gray-900">Clo Visual</span>
             </Link>
           </div>
           
