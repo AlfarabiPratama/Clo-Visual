@@ -667,13 +667,13 @@ const ProceduralDress: React.FC<{ color: string; textureUrl: string | null; fit:
 
 // --- CAMERA CONTROLLER ---
 const CameraController: React.FC<{ preset: 'front' | 'three-quarter' | 'back' }> = ({ preset }) => {
-  const { camera } = useThree();
+  const { camera, controls } = useThree();
   
   useEffect(() => {
     const positions = {
-      'front': [0, 0.5, 4],
-      'three-quarter': [2, 0.8, 3.5],
-      'back': [0, 0.5, -4]
+      'front': [0, 0, 4],
+      'three-quarter': [2.5, 0.5, 3],
+      'back': [0, 0, -4]
     };
     
     const targetPosition = positions[preset];
@@ -683,13 +683,19 @@ const CameraController: React.FC<{ preset: 'front' | 'three-quarter' | 'back' }>
       camera.position.lerp(new THREE.Vector3(...targetPosition), 0.1);
       camera.lookAt(0, 0, 0); // Always look at center
       
+      // Update controls target if available
+      if (controls && 'target' in controls) {
+        (controls as any).target.set(0, 0, 0);
+        (controls as any).update();
+      }
+      
       if (camera.position.distanceTo(new THREE.Vector3(...targetPosition)) > 0.01) {
         requestAnimationFrame(animate);
       }
     };
     
     animate();
-  }, [preset, camera]);
+  }, [preset, camera, controls]);
   
   return null;
 };
@@ -775,7 +781,7 @@ const ThreeDViewer = forwardRef(function ThreeDViewer(
           toneMappingExposure: 1.1,
           outputEncoding: 3001
         }}
-        camera={{ position: [2, 0.8, 3.5], fov: 42 }}
+        camera={{ position: [2.5, 0.5, 3], fov: 45 }}
         onCreated={({ gl, camera }) => {
            // Attach the canvas element to the forwarded ref
            if (typeof ref === 'function') {
@@ -823,7 +829,7 @@ const ThreeDViewer = forwardRef(function ThreeDViewer(
           
           <CameraController preset={cameraPreset} />
           
-          <Center top>
+          <Center position={[0, 0, 0]}>
             {renderGarment()}
           </Center>
 
