@@ -264,8 +264,8 @@ const MockupTShirt: React.FC<{ color: string; textureUrl: string | null; fit: Fi
 
   // Debug logging
   useEffect(() => {
-    console.log('[MockupTShirt] Mounted with props:', { color, textureUrl, fit, textureScale, scale });
-  }, [color, textureUrl, fit, textureScale, scale]);
+    console.log('[MockupTShirt] Mounted with props:', { color, textureUrl, fit, textureScale, scale, viewMode });
+  }, [color, textureUrl, fit, textureScale, scale, viewMode]);
 
   useFrame((state) => {
     if (groupRef.current) {
@@ -289,13 +289,13 @@ const MockupTShirt: React.FC<{ color: string; textureUrl: string | null; fit: Fi
       {/* Mid Torso */}
       <mesh position={[0, 0.1, 0]} scale={[1, 1, 0.65]} castShadow receiveShadow>
         <cylinderGeometry args={[0.46, 0.44, 0.7, 48, 1]} />
-        <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+        <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
       </mesh>
       
       {/* Lower Torso - slightly wider at bottom */}
       <mesh position={[0, -0.4, 0]} scale={[1, 1, 0.65]} castShadow receiveShadow>
         <cylinderGeometry args={[0.44, 0.47, 0.7, 48, 1]} />
-        <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+        <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
       </mesh>
 
       {/* Ribbed Crew Neck Collar */}
@@ -330,19 +330,19 @@ const MockupTShirt: React.FC<{ color: string; textureUrl: string | null; fit: Fi
         {/* Shoulder cap - curved */}
         <mesh position={[0, 0.08, 0]} scale={[1.2, 1, 1]} castShadow receiveShadow>
           <sphereGeometry args={[0.15, 24, 16, 0, Math.PI * 2, 0, Math.PI * 0.6]} />
-          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
         </mesh>
         
         {/* Upper sleeve */}
         <mesh position={[0, -0.05, 0]} castShadow receiveShadow>
           <cylinderGeometry args={[0.14, 0.125, 0.2, 32]} />
-          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
         </mesh>
         
         {/* Lower sleeve - tapered */}
         <mesh position={[0, -0.20, 0]} castShadow receiveShadow>
           <cylinderGeometry args={[0.125, 0.115, 0.15, 32]} />
-          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
         </mesh>
         
         {/* Sleeve hem - subtle fold */}
@@ -363,19 +363,19 @@ const MockupTShirt: React.FC<{ color: string; textureUrl: string | null; fit: Fi
         {/* Shoulder cap - curved */}
         <mesh position={[0, 0.08, 0]} scale={[1.2, 1, 1]} castShadow receiveShadow>
           <sphereGeometry args={[0.15, 24, 16, 0, Math.PI * 2, 0, Math.PI * 0.6]} />
-          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
         </mesh>
         
         {/* Upper sleeve */}
         <mesh position={[0, -0.05, 0]} castShadow receiveShadow>
           <cylinderGeometry args={[0.14, 0.125, 0.2, 32]} />
-          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
         </mesh>
         
         {/* Lower sleeve - tapered */}
         <mesh position={[0, -0.20, 0]} castShadow receiveShadow>
           <cylinderGeometry args={[0.125, 0.115, 0.15, 32]} />
-          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
         </mesh>
         
         {/* Sleeve hem - subtle fold */}
@@ -418,7 +418,7 @@ const MockupTShirt: React.FC<{ color: string; textureUrl: string | null; fit: Fi
   );
 };
 
-const ProceduralHoodie: React.FC<{ color: string; textureUrl: string | null; fit: FitType; textureScale: number }> = ({ color, textureUrl, fit, textureScale }) => {
+const ProceduralHoodie: React.FC<{ color: string; textureUrl: string | null; fit: FitType; textureScale: number; viewMode?: 'stylized' | 'realistic' }> = ({ color, textureUrl, fit, textureScale, viewMode = 'stylized' }) => {
   const groupRef = useRef<THREE.Group>(null);
   const baseScale = getFitScale(fit);
   const scale: [number, number, number] = [baseScale[0] * 1.1, baseScale[1], baseScale[2] * 1.1];
@@ -436,25 +436,25 @@ const ProceduralHoodie: React.FC<{ color: string; textureUrl: string | null; fit
       {/* Shoulders - Broader, more defined */}
       <mesh position={[0, 0.60, 0]} scale={[1.15, 0.85, 0.80]} castShadow receiveShadow>
         <sphereGeometry args={[0.48, 48, 24, 0, Math.PI * 2, 0, Math.PI * 0.45]} />
-        <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+        <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
       </mesh>
       
       {/* Chest - Anatomical shape with defined pecs */}
       <mesh position={[0, 0.35, 0.08]} scale={[1.05, 1, 0.75]} castShadow receiveShadow>
         <sphereGeometry args={[0.46, 48, 24, 0, Math.PI * 2, 0, Math.PI * 0.55]} />
-        <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+        <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
       </mesh>
       
       {/* Upper Torso - Chest to waist taper */}
       <mesh position={[0, 0.05, 0]} scale={[1, 1, 0.72]} castShadow receiveShadow>
         <cylinderGeometry args={[0.47, 0.44, 0.6, 48, 1]} />
-        <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+        <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
       </mesh>
       
       {/* Lower Torso - Slight flare at bottom for natural drape */}
       <mesh position={[0, -0.38, 0]} scale={[1, 1, 0.70]} castShadow receiveShadow>
         <cylinderGeometry args={[0.44, 0.48, 0.75, 48, 1]} />
-        <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+        <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
       </mesh>
 
       {/* Left Sleeve - Natural arm curve with bend */}
@@ -462,17 +462,17 @@ const ProceduralHoodie: React.FC<{ color: string; textureUrl: string | null; fit
         {/* Upper arm */}
         <mesh position={[0, 0.10, 0]} rotation={[0.05, 0, 0]} castShadow receiveShadow>
           <cylinderGeometry args={[0.16, 0.18, 0.5, 32]} />
-          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
         </mesh>
         {/* Elbow area - slight bend */}
         <mesh position={[0.02, -0.25, 0.08]} rotation={[0.15, 0, 0]} castShadow receiveShadow>
           <cylinderGeometry args={[0.15, 0.14, 0.4, 32]} />
-          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
         </mesh>
         {/* Forearm */}
         <mesh position={[0.04, -0.50, 0.18]} rotation={[0.25, 0, 0]} castShadow receiveShadow>
           <cylinderGeometry args={[0.14, 0.13, 0.35, 32]} />
-          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
         </mesh>
         {/* Ribbed cuff - athletic detail */}
         <group position={[0.05, -0.70, 0.28]} rotation={[0.25, 0, 0]}>
@@ -496,15 +496,15 @@ const ProceduralHoodie: React.FC<{ color: string; textureUrl: string | null; fit
       <group position={[0.65, 0.42, 0]} rotation={[0.1, 0, -0.35]}>
         <mesh position={[0, 0.10, 0]} rotation={[-0.05, 0, 0]} castShadow receiveShadow>
           <cylinderGeometry args={[0.16, 0.18, 0.5, 32]} />
-          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
         </mesh>
         <mesh position={[-0.02, -0.25, 0.08]} rotation={[-0.15, 0, 0]} castShadow receiveShadow>
           <cylinderGeometry args={[0.15, 0.14, 0.4, 32]} />
-          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
         </mesh>
         <mesh position={[-0.04, -0.50, 0.18]} rotation={[-0.25, 0, 0]} castShadow receiveShadow>
           <cylinderGeometry args={[0.14, 0.13, 0.35, 32]} />
-          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
         </mesh>
         <group position={[-0.05, -0.70, 0.28]} rotation={[-0.25, 0, 0]}>
           <mesh castShadow receiveShadow>
@@ -527,12 +527,12 @@ const ProceduralHoodie: React.FC<{ color: string; textureUrl: string | null; fit
         {/* Main hood volume - fuller shape */}
         <mesh position={[0, 0.05, -0.02]} rotation={[0.25, 0, 0]} castShadow receiveShadow>
           <sphereGeometry args={[0.44, 48, 32, 0, Math.PI * 2, 0, Math.PI / 1.65]} />
-          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
         </mesh>
         {/* Hood back - extends behind neck */}
         <mesh position={[0, 0.08, -0.28]} rotation={[0.5, 0, 0]} castShadow receiveShadow>
           <sphereGeometry args={[0.32, 40, 24, 0, Math.PI * 2, 0, Math.PI * 0.4]} />
-          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
         </mesh>
         {/* Hood opening edge - more pronounced */}
         <mesh position={[0, -0.12, 0.35]} rotation={[0.50, 0, 0]}>
@@ -574,7 +574,7 @@ const ProceduralHoodie: React.FC<{ color: string; textureUrl: string | null; fit
         {/* Main pocket body */}
         <mesh rotation={[-0.08, 0, 0]} castShadow>
           <boxGeometry args={[0.54, 0.35, 0.14]} />
-          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
         </mesh>
         {/* Pocket opening (dark interior) */}
         <mesh position={[0, 0.15, 0.06]} rotation={[-0.2, 0, 0]}>
@@ -617,7 +617,7 @@ const ProceduralHoodie: React.FC<{ color: string; textureUrl: string | null; fit
   );
 };
 
-const ProceduralDress: React.FC<{ color: string; textureUrl: string | null; fit: FitType; textureScale: number }> = ({ color, textureUrl, fit, textureScale }) => {
+const ProceduralDress: React.FC<{ color: string; textureUrl: string | null; fit: FitType; textureScale: number; viewMode?: 'stylized' | 'realistic' }> = ({ color, textureUrl, fit, textureScale, viewMode = 'stylized' }) => {
   const groupRef = useRef<THREE.Group>(null);
   const scale = getFitScale(fit);
 
@@ -632,22 +632,22 @@ const ProceduralDress: React.FC<{ color: string; textureUrl: string | null; fit:
       {/* Bodice - Upper */}
       <mesh position={[0, 0.65, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[0.42, 0.37, 0.6, 48]} />
-        <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+        <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
       </mesh>
       {/* Waist */}
       <mesh position={[0, 0.20, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[0.37, 0.35, 0.4, 48]} />
-        <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+        <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
       </mesh>
       {/* Skirt - Flared */}
       <mesh position={[0, -0.5, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[0.35, 0.75, 1.2, 48]} />
-        <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+        <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
       </mesh>
       {/* Skirt Lower */}
       <mesh position={[0, -1.25, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[0.75, 0.85, 0.3, 48]} />
-        <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+        <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
       </mesh>
       {/* Hem detail */}
       <mesh position={[0, -1.41, 0]}>
@@ -663,14 +663,14 @@ const ProceduralDress: React.FC<{ color: string; textureUrl: string | null; fit:
       <group position={[-0.20, 0.85, 0]}>
         <mesh position={[0, 0.08, -0.05]} rotation={[0.2, 0, 0.1]} castShadow receiveShadow>
           <cylinderGeometry args={[0.035, 0.035, 0.22, 16]} />
-          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
         </mesh>
       </group>
       {/* Right Strap */}
       <group position={[0.20, 0.85, 0]}>
         <mesh position={[0, 0.08, -0.05]} rotation={[0.2, 0, -0.1]} castShadow receiveShadow>
           <cylinderGeometry args={[0.035, 0.035, 0.22, 16]} />
-          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
         </mesh>
       </group>
     </group>
