@@ -167,6 +167,12 @@ const TexturedMaterial: React.FC<{ url: string; color: string; scale: number }> 
       texture.repeat.set(scale, scale);
       // Compatibility: use encoding instead of colorSpace
       (texture as any).encoding = 3001; // sRGBEncoding
+      
+      // Critical fix for SVG/external textures visibility
+      texture.anisotropy = 16; // Better texture quality
+      texture.minFilter = THREE.LinearMipMapLinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      
       texture.needsUpdate = true;
     }
   }, [texture, scale, url]);
@@ -176,14 +182,18 @@ const TexturedMaterial: React.FC<{ url: string; color: string; scale: number }> 
   return (
     <meshPhysicalMaterial 
       color="#ffffff"
-      map={texture} 
-      roughness={0.8}
+      map={texture}
+      transparent={false}
+      opacity={1.0}
+      side={THREE.DoubleSide}
+      roughness={0.75}
       metalness={0.0}
-      sheen={0.4}
+      sheen={0.3}
       sheenColor={new THREE.Color(0xffffff)}
-      sheenRoughness={0.7}
-      clearcoat={0.02}
-      clearcoatRoughness={0.9}
+      sheenRoughness={0.6}
+      clearcoat={0.01}
+      clearcoatRoughness={0.8}
+      envMapIntensity={0.6}
       wireframe={false}
     />
   );
