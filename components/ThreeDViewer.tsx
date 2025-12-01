@@ -682,17 +682,8 @@ const ThreeDViewer = forwardRef(function ThreeDViewer(
         return <ProceduralDress color={color} textureUrl={textureUrl} fit={fit} textureScale={textureScale} />;
       case GarmentType.TSHIRT:
       default:
-        // Use GLB T-shirt model
-        return (
-          <React.Suspense fallback={null}>
-            <CustomGLBModel 
-              url="/models/T Shirt/t_shirt.glb"
-              color={color} 
-              textureUrl={textureUrl}
-              textureScale={textureScale} 
-            />
-          </React.Suspense>
-        );
+        // Use procedural T-shirt with realistic crew neck and sleeves
+        return <MockupTShirt color={color} textureUrl={textureUrl} fit={fit} textureScale={textureScale} />;
     }
   };
 
