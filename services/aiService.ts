@@ -92,40 +92,41 @@ EXAMPLES:
     // ============================================
     // OPSI A: Local Textures (CORS-Safe, No External Dependencies)
     // ============================================
-    // Gunakan local files yang sudah ada di public/textures/
-    // Fallback ke null (solid color) jika file tidak ada
+    // Semua textures sudah tersedia di public/textures/ (SVG format - scalable & ringan)
     const patternMap: Record<string, string | null> = {
-      // Geometric patterns - Gunakan file yang sudah ada
+      // Geometric patterns
       'geometric': '/textures/hexagons.svg',
       'geometry': '/textures/hexagons.svg',
       'abstract': '/textures/hexagons.svg',
       
-      // Floral - Gunakan file yang sudah ada
+      // Floral patterns
       'floral': '/textures/moroccan-flower-dark.png',
       'flower': '/textures/moroccan-flower-dark.png',
       'bunga': '/textures/moroccan-flower-dark.png',
       
-      // Stripes - Perlu download (Hero Patterns gratis)
+      // Stripes & lines
       'stripes': '/textures/stripes.svg',
       'stripe': '/textures/stripes.svg',
       'garis': '/textures/stripes.svg',
       
-      // Fabric textures - Perlu download dari Subtle Patterns (download manual)
-      'jersey-knit': '/textures/fabric.png',
-      'jersey': '/textures/fabric.png',
-      'knit': '/textures/fabric.png',
-      'cotton': '/textures/cotton.png',
-      'katun': '/textures/cotton.png',
+      // Fabric textures (jersey, knit)
+      'jersey-knit': '/textures/fabric.svg',
+      'jersey': '/textures/fabric.svg',
+      'knit': '/textures/fabric.svg',
       
-      // Denim - Perlu download
-      'denim': '/textures/denim.png',
-      'jeans': '/textures/denim.png',
+      // Cotton weave texture
+      'cotton': '/textures/cotton.svg',
+      'katun': '/textures/cotton.svg',
       
-      // Batik - Indonesian traditional
-      'batik-modern': '/textures/batik.png',
-      'batik': '/textures/batik.png',
+      // Denim texture
+      'denim': '/textures/denim.svg',
+      'jeans': '/textures/denim.svg',
       
-      // No texture
+      // Batik - Traditional Indonesian pattern
+      'batik-modern': '/textures/batik.svg',
+      'batik': '/textures/batik.svg',
+      
+      // No texture (solid color only)
       'plain': null,
       'polos': null,
       'solid': null
