@@ -75,30 +75,48 @@ EXAMPLES:
     
     console.log('[AI Response]', data); // Debug log to see what Gemini returns
     
-    // Map pattern keywords to reliable texture URLs with CORS support
-    // Using picsum.photos as reliable alternative with proper CORS headers
+    // ============================================
+    // OPSI B: Deteksi Intent Pattern dari User
+    // ============================================
+    // Cek apakah user benar-benar minta pattern/motif
+    const userPrompt = prompt.toLowerCase();
+    const patternKeywords = /motif|pattern|pola|garis|strip|bunga|floral|batik|geometr|texture|tekstur|print|cetakan/i;
+    const wantsPattern = patternKeywords.test(userPrompt);
+    
+    // Kalau user TIDAK menyebut kata-kata pattern, tapi AI kasih pattern, override jadi plain
+    if (!wantsPattern && data.texturePattern && data.texturePattern !== 'plain') {
+      console.log('[Pattern Override]', 'User tidak request pattern, forcing plain color');
+      data.texturePattern = 'plain';
+    }
+    
+    // ============================================
+    // OPSI A: Map Pattern ke Local Textures
+    // ============================================
+    // Path lokal untuk texture files (siap untuk download manual nanti)
+    // Fallback ke picsum untuk sementara kalau file belum ada
     const patternMap: Record<string, string | null> = {
-      'jersey-knit': 'https://picsum.photos/seed/jersey/512/512',
-      'jersey': 'https://picsum.photos/seed/jersey/512/512',
-      'knit': 'https://picsum.photos/seed/knit/512/512',
-      'batik-modern': 'https://picsum.photos/seed/batik/512/512',
-      'batik': 'https://picsum.photos/seed/batik/512/512',
-      'stripes': 'https://picsum.photos/seed/stripes/512/512',
-      'stripe': 'https://picsum.photos/seed/stripes/512/512',
-      'garis': 'https://picsum.photos/seed/stripes/512/512',
-      'floral': 'https://picsum.photos/seed/floral/512/512',
-      'flower': 'https://picsum.photos/seed/floral/512/512',
-      'bunga': 'https://picsum.photos/seed/floral/512/512',
-      'geometric': 'https://picsum.photos/seed/geometric/512/512',
-      'geometry': 'https://picsum.photos/seed/geometric/512/512',
-      'abstract': 'https://picsum.photos/seed/abstract/512/512',
+      // Local texture paths (uncomment setelah download textures ke public/textures/)
+      'jersey-knit': '/textures/knit.png',
+      'jersey': '/textures/knit.png',
+      'knit': '/textures/knit.png',
+      'batik-modern': '/textures/batik.png',
+      'batik': '/textures/batik.png',
+      'stripes': '/textures/stripes.png',
+      'stripe': '/textures/stripes.png',
+      'garis': '/textures/stripes.png',
+      'floral': '/textures/floral.png',
+      'flower': '/textures/floral.png',
+      'bunga': '/textures/floral.png',
+      'geometric': '/textures/geometric.png',
+      'geometry': '/textures/geometric.png',
+      'abstract': '/textures/geometric.png',
       'plain': null, // No texture, solid color only
       'polos': null,
       'solid': null,
-      'denim': 'https://picsum.photos/seed/denim/512/512',
-      'jeans': 'https://picsum.photos/seed/denim/512/512',
-      'cotton': 'https://picsum.photos/seed/cotton/512/512',
-      'katun': 'https://picsum.photos/seed/cotton/512/512'
+      'denim': '/textures/denim.png',
+      'jeans': '/textures/denim.png',
+      'cotton': '/textures/cotton.png',
+      'katun': '/textures/cotton.png'
     };
     
     // Flexible pattern matching: try exact match first, then substring match
@@ -112,7 +130,8 @@ EXAMPLES:
     }
     
     console.log('[Pattern Matching]', { 
-      aiReturned: patternKey, 
+      aiReturned: patternKey,
+      userWantsPattern: wantsPattern,
       matchedTexture: textureUrl || 'solid color only' 
     });
     
