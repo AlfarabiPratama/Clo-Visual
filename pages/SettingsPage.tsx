@@ -191,8 +191,9 @@ const SettingsPage: React.FC = () => {
                       </div>
                       <button
                         onClick={() => setEmailNotifications(!emailNotifications)}
+                        aria-label="Toggle email notifications"
                         className={`
-                          relative inline-flex h-5 w-10 sm:h-6 sm:w-11 items-center rounded-full transition-colors flex-shrink-0
+                          relative inline-flex h-5 w-10 sm:h-6 sm:w-11 items-center rounded-full transition-colors shrink-0
                           ${emailNotifications ? 'bg-slate-600' : 'bg-gray-200'}
                         `}
                       >
@@ -212,8 +213,9 @@ const SettingsPage: React.FC = () => {
                       </div>
                       <button
                         onClick={() => setDesignUpdates(!designUpdates)}
+                        aria-label="Toggle design update notifications"
                         className={`
-                          relative inline-flex h-5 w-10 sm:h-6 sm:w-11 items-center rounded-full transition-colors flex-shrink-0
+                          relative inline-flex h-5 w-10 sm:h-6 sm:w-11 items-center rounded-full transition-colors shrink-0
                           ${designUpdates ? 'bg-slate-600' : 'bg-gray-200'}
                         `}
                       >
@@ -291,7 +293,7 @@ const SettingsPage: React.FC = () => {
 
                   <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-md">
                     <div className="flex items-start">
-                      <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 mt-0.5 mr-2 sm:mr-3 flex-shrink-0" />
+                      <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 mt-0.5 mr-2 sm:mr-3 shrink-0" />
                       <div className="text-xs sm:text-sm text-blue-800">
                         <p className="font-medium mb-1">Keamanan API Key</p>
                         <p>API key Anda disimpan secara lokal di browser dan tidak pernah dikirim ke server kami. Kami hanya menggunakan API key untuk mengirim request ke provider AI yang Anda pilih.</p>
@@ -308,7 +310,7 @@ const SettingsPage: React.FC = () => {
                 <div>
                   <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">Paket Saat Ini</h3>
                   
-                  <div className="border border-gray-200 rounded-lg p-4 sm:p-5 md:p-6 bg-gradient-to-br from-slate-50 to-gray-50">
+                  <div className="border border-gray-200 rounded-lg p-4 sm:p-5 md:p-6 bg-linear-to-br from-slate-50 to-gray-50">
                     <div className="flex items-center justify-between mb-3 sm:mb-4 flex-wrap gap-2">
                       <div>
                         <h4 className="text-lg sm:text-xl font-bold text-gray-900">Free Plan</h4>
