@@ -1,5 +1,6 @@
 import React, { Suspense, lazy } from 'react';
 import Navbar, { HashRouter as Router, Routes, Route, useLocation } from './components/Navbar';
+import MobileBottomNav from './components/MobileBottomNav';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import { Instagram, MessageCircle, Mail, Phone } from 'lucide-react';
@@ -114,7 +115,7 @@ const AppContent: React.FC = () => {
   return (
     <div className="flex flex-col min-h-screen font-sans text-gray-900 bg-gray-50">
       {!isAuthPage && <Navbar />}
-      <main className="flex-grow">
+      <main className="flex-grow pb-16 md:pb-0">
         <Suspense fallback={<div className="p-10 text-center text-sm text-gray-500">Memuat halaman...</div>}>
           <Routes>
             <Route path="/" element={<LandingPage />} />
@@ -151,6 +152,7 @@ const AppContent: React.FC = () => {
         </Suspense>
       </main>
       {showFooter && <Footer />}
+      <MobileBottomNav />
     </div>
   );
 };
