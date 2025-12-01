@@ -6,10 +6,10 @@ import { Project, GarmentType } from '../types';
 const MOCK_PROJECTS: Project[] = [
   {
     id: '1',
-    name: 'T-Shirt Streetwear Gen Z',
+    name: 'Oversize Summer Tee',
     garmentType: 'T-Shirt',
     lastEdited: '2 jam yang lalu',
-    thumbnailUrl: 'https://picsum.photos/seed/streetwear/300/200',
+    thumbnailUrl: 'https://d2kchovjbwl1tk.cloudfront.net/vendor/240/product/14736B_1699072781215.jpg',
     description: 'Koleksi musim panas untuk target pasar remaja.'
   },
   {
@@ -22,10 +22,10 @@ const MOCK_PROJECTS: Project[] = [
   },
   {
     id: '3',
-    name: 'Seragam Batik Sekolah',
+    name: 'Batik Hari Raya',
     garmentType: 'T-Shirt', // Using T-shirt as base for prototype
     lastEdited: '3 hari yang lalu',
-    thumbnailUrl: 'https://picsum.photos/seed/batik/300/200',
+    thumbnailUrl: 'https://cdn-brilio-net.akamaized.net/real/2024/04/05/2249921/potret-lucu-desain-baju.jpg',
     description: 'Motif parang modifikasi.'
   }
 ];
