@@ -90,37 +90,38 @@ EXAMPLES:
     }
     
     // ============================================
-    // OPSI A+: Direct URLs dari Subtle Patterns (No Download Required)
+    // OPSI A: Local Textures (CORS-Safe, No External Dependencies)
     // ============================================
-    // Langsung pakai CDN Subtle Patterns - pattern terdeteksi otomatis dari AI
+    // Gunakan local files yang sudah ada di public/textures/
+    // Fallback ke null (solid color) jika file tidak ada
     const patternMap: Record<string, string | null> = {
-      // Fabric textures - Direct dari Subtle Patterns CDN
-      'jersey-knit': 'https://www.toptal.com/designers/subtlepatterns/uploads/fabric_1.png',
-      'jersey': 'https://www.toptal.com/designers/subtlepatterns/uploads/fabric_1.png',
-      'knit': 'https://www.toptal.com/designers/subtlepatterns/uploads/fabric_1.png',
-      'cotton': 'https://www.toptal.com/designers/subtlepatterns/uploads/cloth-alike.png',
-      'katun': 'https://www.toptal.com/designers/subtlepatterns/uploads/cloth-alike.png',
+      // Geometric patterns - Gunakan file yang sudah ada
+      'geometric': '/textures/hexagons.svg',
+      'geometry': '/textures/hexagons.svg',
+      'abstract': '/textures/hexagons.svg',
       
-      // Denim & jeans textures
-      'denim': 'https://www.toptal.com/designers/subtlepatterns/uploads/denim.png',
-      'jeans': 'https://www.toptal.com/designers/subtlepatterns/uploads/denim.png',
+      // Floral - Gunakan file yang sudah ada
+      'floral': '/textures/moroccan-flower-dark.png',
+      'flower': '/textures/moroccan-flower-dark.png',
+      'bunga': '/textures/moroccan-flower-dark.png',
       
-      // Geometric patterns - Hero Patterns style URLs
-      'geometric': 'https://www.toptal.com/designers/subtlepatterns/uploads/hexellence.png',
-      'geometry': 'https://www.toptal.com/designers/subtlepatterns/uploads/hexellence.png',
-      'abstract': 'https://www.toptal.com/designers/subtlepatterns/uploads/diagmonds.png',
+      // Stripes - Perlu download (Hero Patterns gratis)
+      'stripes': '/textures/stripes.svg',
+      'stripe': '/textures/stripes.svg',
+      'garis': '/textures/stripes.svg',
       
-      // Stripes & lines
-      'stripes': 'https://www.toptal.com/designers/subtlepatterns/uploads/project_papper.png',
-      'stripe': 'https://www.toptal.com/designers/subtlepatterns/uploads/project_papper.png',
-      'garis': 'https://www.toptal.com/designers/subtlepatterns/uploads/project_papper.png',
+      // Fabric textures - Perlu download dari Subtle Patterns (download manual)
+      'jersey-knit': '/textures/fabric.png',
+      'jersey': '/textures/fabric.png',
+      'knit': '/textures/fabric.png',
+      'cotton': '/textures/cotton.png',
+      'katun': '/textures/cotton.png',
       
-      // Floral & organic patterns
-      'floral': 'https://www.toptal.com/designers/subtlepatterns/uploads/moroccan-flower-dark.png',
-      'flower': 'https://www.toptal.com/designers/subtlepatterns/uploads/moroccan-flower-dark.png',
-      'bunga': 'https://www.toptal.com/designers/subtlepatterns/uploads/moroccan-flower-dark.png',
+      // Denim - Perlu download
+      'denim': '/textures/denim.png',
+      'jeans': '/textures/denim.png',
       
-      // Batik - Indonesian traditional pattern (local fallback)
+      // Batik - Indonesian traditional
       'batik-modern': '/textures/batik.png',
       'batik': '/textures/batik.png',
       

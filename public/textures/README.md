@@ -2,33 +2,57 @@
 
 Folder ini berisi seamless pattern textures untuk aplikasi Clo Visual.
 
-## 🚀 Update: Direct CDN Loading
+## ⚠️ CORS Issue dengan External CDN
 
-**Mayoritas textures sekarang load langsung dari Subtle Patterns CDN** - tidak perlu download manual!
+Subtle Patterns dan sebagian besar CDN texture **memblokir CORS**, jadi kita harus pakai **local files**.
 
-Pattern yang sudah otomatis:
-- ✅ Fabric/Jersey/Knit → `fabric_1.png`
-- ✅ Cotton → `cloth-alike.png`
-- ✅ Denim/Jeans → `denim.png`
-- ✅ Geometric → `hexellence.png`
-- ✅ Stripes → `project_papper.png`
-- ✅ Floral → `moroccan-flower-dark.png`
+## ✅ Files yang Sudah Ada:
+- `hexagons.svg` → Geometric pattern
+- `moroccan-flower-dark.png` → Floral pattern
 
-## File yang Masih Perlu Download (Opsional):
+## 📥 Files yang Perlu Didownload:
 
-Hanya untuk pattern spesifik yang tidak ada di Subtle Patterns:
+Download textures berikut dan simpan di folder ini (`public/textures/`):
 
-### Optional Local Textures (Only if you want custom patterns):
+### Required Texture Files:
 
-**Custom Indonesian/Regional Patterns:**
-- `batik.png` - Motif batik Indonesia (not available on Subtle Patterns)
+| Filename | Pattern Type | Download Link | Alternative |
+|----------|--------------|---------------|-------------|
+| `stripes.svg` | Garis-garis | [Hero Patterns - Lines](https://heropatterns.com/) | Pilih pattern "Vertical Lines" → Download SVG |
+| `fabric.png` | Jersey/Knit | [Subtle Patterns - Fabric 1](https://www.toptal.com/designers/subtlepatterns/fabric-1-pattern/) | Click "Download" button |
+| `cotton.png` | Cotton weave | [Subtle Patterns - Cloth Alike](https://www.toptal.com/designers/subtlepatterns/cloth-alike-pattern/) | Click "Download" button |
+| `denim.png` | Denim texture | [Subtle Patterns - Denim](https://www.toptal.com/designers/subtlepatterns/denim-pattern/) | Click "Download" button |
+| `batik.png` | Batik Indonesia | Search Google: "batik pattern seamless" | Any tileable batik PNG |
 
-**Custom Overrides (if you want different patterns):**
-- `geometric.svg` - Override default hexellence pattern
-- `stripes.svg` - Override default project_papper pattern
-- Any other custom texture you want to use
+### Quick Download Instructions:
 
-> **Note**: Sistem akan cek local files dulu, kalau tidak ada baru pakai CDN URL.
+**1. Hero Patterns (SVG - untuk Stripes):**
+```
+1. Buka: https://heropatterns.com/
+2. Pilih pattern: "Vertical Lines" atau "Horizontal Stripes"
+3. Adjust stroke width & spacing
+4. Click "Download SVG"
+5. Rename file jadi: stripes.svg
+6. Copy ke folder: public/textures/
+```
+
+**2. Subtle Patterns (PNG - untuk Fabric/Denim/Cotton):**
+```
+1. Buka link di tabel atas (klik nama pattern)
+2. Klik tombol "Download" biru
+3. Extract ZIP file
+4. Rename sesuai tabel (fabric.png, denim.png, cotton.png)
+5. Copy semua ke folder: public/textures/
+```
+
+**3. Batik Pattern (PNG - Indonesian specific):**
+```
+1. Google search: "batik pattern seamless transparent"
+2. Filter: Size > Large, Type > PNG
+3. Download pattern yang tileable (bisa repeat)
+4. Resize ke 512x512px atau 1024x1024px
+5. Save as: batik.png di folder public/textures/
+```
 
 ## Sumber Download Gratis:
 
