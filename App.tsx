@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import Navbar, { HashRouter as Router, Routes, Route, useLocation } from './components/Navbar';
-import LandingPage from './pages/LandingPage';
-import DashboardPage from './pages/DashboardPage';
-import DesignerPage from './pages/DesignerPage';
-import PricingPage from './pages/PricingPage';
+
+// Lazy load pages untuk memecah bundle besar
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const DesignerPage = lazy(() => import('./pages/DesignerPage'));
+const PricingPage = lazy(() => import('./pages/PricingPage'));
 
 // Simple Footer Component
 const Footer: React.FC = () => (
@@ -32,12 +34,14 @@ const AppContent: React.FC = () => {
     <div className="flex flex-col min-h-screen font-sans text-gray-900 bg-gray-50">
       <Navbar />
       <main className="flex-grow">
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/projects" element={<DashboardPage />} />
-          <Route path="/designer" element={<DesignerPage />} />
-          <Route path="/pricing" element={<PricingPage />} />
-        </Routes>
+        <Suspense fallback={<div className="p-10 text-center text-sm text-gray-500">Memuat halaman...</div>}>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/projects" element={<DashboardPage />} />
+            <Route path="/designer" element={<DesignerPage />} />
+            <Route path="/pricing" element={<PricingPage />} />
+          </Routes>
+        </Suspense>
       </main>
       {showFooter && <Footer />}
     </div>

@@ -3,7 +3,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from '../components/Navbar';
 import { Download, Save, Wand2, Upload, MessageSquare, X, Send, Box, Undo, Redo, Sparkles } from 'lucide-react';
 import { DesignState, GarmentType, ChatMessage, FitType } from '../types';
-import ThreeDViewer from '../components/ThreeDViewer';
+import React, { lazy, Suspense, useState, useEffect, useRef } from 'react';
+const ThreeDViewer = lazy(() => import('../components/ThreeDViewer'));
 import TemplateBrowser from '../components/TemplateBrowser';
 import { generateDesignFromText, generateDesignFromImage, chatWithAiAssistant } from '../services/aiService';
 import { DesignTemplate } from '../data/templateLibrary';
@@ -537,17 +538,19 @@ const DesignerPage: React.FC = () => {
               </div>
             )}
 
-            <ThreeDViewer 
-              ref={canvasRef}
-              color={designState.color} 
-              textureUrl={designState.textureUrl}
-              garmentType={designState.garmentType}
-              fit={designState.fit}
-              textureScale={designState.textureScale}
-              customModelUrl={designState.customModelUrl}
-              autoRotate={autoRotate}
-              onLoadComplete={() => setIsModelLoading(false)}
-            />
+            <Suspense fallback={<div className="absolute inset-0 flex items-center justify-center text-sm text-gray-500">Memuat viewer 3D...</div>}>
+              <ThreeDViewer 
+                ref={canvasRef}
+                color={designState.color} 
+                textureUrl={designState.textureUrl}
+                garmentType={designState.garmentType}
+                fit={designState.fit}
+                textureScale={designState.textureScale}
+                customModelUrl={designState.customModelUrl}
+                autoRotate={autoRotate}
+                onLoadComplete={() => setIsModelLoading(false)}
+              />
+            </Suspense>
             
             {statusMessage && (
                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/70 text-white px-6 py-3 rounded-full text-sm font-medium backdrop-blur-md animate-pulse z-30">
