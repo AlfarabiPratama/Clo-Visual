@@ -50,35 +50,24 @@ class TextureErrorBoundary extends Component<TextureErrorBoundaryProps, TextureE
 }
 
 // --- CUSTOM GLB MODEL LOADER ---
-const CustomGLBModel: React.FC<{ url: string; color: string; textureUrl: string | null; textureScale: number }> = ({ url, color, textureUrl, textureScale }) => {
+// GLB Model with texture - separate component to avoid conditional hooks
+const CustomGLBModelWithTexture: React.FC<{ url: string; textureUrl: string; textureScale: number }> = ({ url, textureUrl, textureScale }) => {
   const { scene } = useGLTF(url);
   const clone = React.useMemo(() => scene.clone(), [scene]);
-  
-  // Only load texture if textureUrl is provided
-  const texture = textureUrl ? useTexture(textureUrl) : null;
+  const texture = useTexture(textureUrl);
   
   useLayoutEffect(() => {
-    if (textureUrl && texture) {
+    if (texture) {
        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
        texture.repeat.set(textureScale, textureScale);
-       // Compatibility: use string for encoding
        (texture as any).encoding = 3001; // sRGBEncoding
     }
 
     clone.traverse((child: any) => {
       if (child.isMesh) {
-        // Clone material to avoid affecting other instances
         child.material = child.material.clone();
-        
-        if (textureUrl && texture) {
-          child.material.map = texture;
-          child.material.color = new THREE.Color(0xffffff);
-        } else {
-          child.material.map = null;
-          child.material.color = new THREE.Color(color);
-        }
-        
-        // PBR enhancements for realistic fabric
+        child.material.map = texture;
+        child.material.color = new THREE.Color(0xffffff);
         child.material.roughness = 0.72;
         child.material.metalness = 0.03;
         child.material.sheen = 0.60;
@@ -87,9 +76,41 @@ const CustomGLBModel: React.FC<{ url: string; color: string; textureUrl: string 
         child.material.needsUpdate = true;
       }
     });
-  }, [clone, color, textureUrl, texture, textureScale]);
+  }, [clone, texture, textureScale]);
 
   return <primitive object={clone} />;
+};
+
+// GLB Model without texture - just color
+const CustomGLBModelWithColor: React.FC<{ url: string; color: string }> = ({ url, color }) => {
+  const { scene } = useGLTF(url);
+  const clone = React.useMemo(() => scene.clone(), [scene]);
+  
+  useLayoutEffect(() => {
+    clone.traverse((child: any) => {
+      if (child.isMesh) {
+        child.material = child.material.clone();
+        child.material.map = null;
+        child.material.color = new THREE.Color(color);
+        child.material.roughness = 0.72;
+        child.material.metalness = 0.03;
+        child.material.sheen = 0.60;
+        child.castShadow = true;
+        child.receiveShadow = true;
+        child.material.needsUpdate = true;
+      }
+    });
+  }, [clone, color]);
+
+  return <primitive object={clone} />;
+};
+
+// Wrapper component to choose between texture/color variants
+const CustomGLBModel: React.FC<{ url: string; color: string; textureUrl: string | null; textureScale: number }> = ({ url, color, textureUrl, textureScale }) => {
+  if (textureUrl) {
+    return <CustomGLBModelWithTexture url={url} textureUrl={textureUrl} textureScale={textureScale} />;
+  }
+  return <CustomGLBModelWithColor url={url} color={color} />;
 };
 
 
