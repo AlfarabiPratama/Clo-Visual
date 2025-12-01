@@ -50,24 +50,52 @@ class TextureErrorBoundary extends Component<TextureErrorBoundaryProps, TextureE
 }
 
 // --- CUSTOM GLB MODEL LOADER ---
-// GLB Model with texture - separate component to avoid conditional hooks
+// GLB Model with texture - using THREE.TextureLoader for better CORS handling
 const CustomGLBModelWithTexture: React.FC<{ url: string; textureUrl: string; textureScale: number }> = ({ url, textureUrl, textureScale }) => {
   const { scene } = useGLTF(url);
   const clone = React.useMemo(() => scene.clone(), [scene]);
-  const texture = useTexture(textureUrl);
+  const [texture, setTexture] = React.useState<THREE.Texture | null>(null);
+  
+  // Load texture manually with error handling
+  useEffect(() => {
+    console.log('[CustomGLBModelWithTexture] Loading texture:', textureUrl);
+    const loader = new THREE.TextureLoader();
+    loader.setCrossOrigin('anonymous');
+    
+    loader.load(
+      textureUrl,
+      (loadedTexture) => {
+        console.log('[CustomGLBModelWithTexture] Texture loaded successfully');
+        loadedTexture.wrapS = loadedTexture.wrapT = THREE.RepeatWrapping;
+        loadedTexture.repeat.set(textureScale, textureScale);
+        (loadedTexture as any).encoding = 3001; // sRGBEncoding
+        loadedTexture.needsUpdate = true;
+        setTexture(loadedTexture);
+      },
+      undefined,
+      (error) => {
+        console.error('[CustomGLBModelWithTexture] Texture loading failed:', error);
+        setTexture(null);
+      }
+    );
+  }, [textureUrl, textureScale]);
   
   useLayoutEffect(() => {
-    if (texture) {
-       texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-       texture.repeat.set(textureScale, textureScale);
-       (texture as any).encoding = 3001; // sRGBEncoding
-    }
+    console.log('[CustomGLBModelWithTexture] Applying texture to model:', { hasTexture: !!texture });
 
     clone.traverse((child: any) => {
       if (child.isMesh) {
         child.material = child.material.clone();
-        child.material.map = texture;
-        child.material.color = new THREE.Color(0xffffff);
+        
+        if (texture) {
+          child.material.map = texture;
+          child.material.color = new THREE.Color(0xffffff);
+        } else {
+          // Show white while loading or if failed
+          child.material.map = null;
+          child.material.color = new THREE.Color(0xffffff);
+        }
+        
         child.material.roughness = 0.72;
         child.material.metalness = 0.03;
         child.material.sheen = 0.60;
@@ -76,7 +104,7 @@ const CustomGLBModelWithTexture: React.FC<{ url: string; textureUrl: string; tex
         child.material.needsUpdate = true;
       }
     });
-  }, [clone, texture, textureScale]);
+  }, [clone, texture]);
 
   return <primitive object={clone} />;
 };
