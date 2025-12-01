@@ -1,0 +1,667 @@
+
+import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from '../components/Navbar';
+import { Download, Save, Wand2, Upload, MessageSquare, X, Send, Box, Undo, Redo, Sparkles } from 'lucide-react';
+import { DesignState, GarmentType, ChatMessage, FitType } from '../types';
+import ThreeDViewer from '../components/ThreeDViewer';
+import TemplateBrowser from '../components/TemplateBrowser';
+import { generateDesignFromText, generateDesignFromImage, chatWithAiAssistant } from '../services/aiService';
+import { DesignTemplate } from '../data/templateLibrary';
+
+const DesignerPage: React.FC = () => {
+  const location = useLocation();
+  const initialStateData = location.state as any;
+
+  // Helper to construct initial state consistently
+  const getInitialState = (): DesignState => ({
+    projectName: initialStateData?.name || 'Untitled Project',
+    garmentType: initialStateData?.type || initialStateData?.project?.garmentType || GarmentType.TSHIRT,
+    color: '#ffffff',
+    textureUrl: null,
+    description: initialStateData?.project?.description || '',
+    fit: 'Regular',
+    textureScale: 3,
+    customModelUrl: null
+  });
+
+  // --- State ---
+  // We initialize history with the first state
+  const [history, setHistory] = useState<DesignState[]>([getInitialState()]);
+  const [historyIndex, setHistoryIndex] = useState(0);
+  
+  // derived current state for rendering
+  const designState = history[historyIndex];
+
+  // Ref to hold the latest designState for async handlers to avoid stale closures
+  const designStateRef = useRef(designState);
+
+  // Sync ref with state
+  useEffect(() => {
+    designStateRef.current = designState;
+  }, [designState]);
+
+  const [promptText, setPromptText] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
+  
+  // 3D Viewer Controls
+  const [autoRotate, setAutoRotate] = useState(false);
+  const [isModelLoading, setIsModelLoading] = useState(true);
+  
+  // Chat Assistant State
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatInput, setChatInput] = useState('');
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([
+    { role: 'assistant', content: 'Halo! Saya asisten desain AI Clo Visual. Saya bisa bantu Anda membuat desain yang lebih realistis!\n\nContoh prompt bagus:\n• "T-shirt jersey cotton putih dengan pattern geometric minimalis hitam"\n• "Hoodie fleece navy blue dengan print batik modern gold"\n• "Dress linen soft pink dengan motif floral vintage"\n\nAda yang ingin Anda buat?' }
+  ]);
+  const [isChatLoading, setIsChatLoading] = useState(false);
+
+  // Template Browser State
+  const [isTemplateBrowserOpen, setIsTemplateBrowserOpen] = useState(false);
+
+  // Ref for the 3D Canvas (for export)
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  // --- Undo / Redo / History Logic ---
+
+  const applyDesignChange = (newState: DesignState) => {
+    // Slice history to current index (removing any redo history)
+    const newHistory = history.slice(0, historyIndex + 1);
+    // Push new state
+    newHistory.push(newState);
+    
+    setHistory(newHistory);
+    setHistoryIndex(newHistory.length - 1);
+  };
+
+  const undo = () => {
+    if (historyIndex > 0) {
+      setHistoryIndex(historyIndex - 1);
+    }
+  };
+
+  const redo = () => {
+    if (historyIndex < history.length - 1) {
+      setHistoryIndex(historyIndex + 1);
+    }
+  };
+
+  // Keyboard shortcuts for Undo/Redo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        if (e.shiftKey) {
+          redo();
+        } else {
+          undo();
+        }
+        e.preventDefault();
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+        redo();
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [historyIndex, history.length]); // Re-bind when indices change to capture latest closure if needed, though functions rely on state setters
+
+  // --- Handlers ---
+
+  const handleTextGeneration = async () => {
+    if (!promptText.trim()) return;
+    
+    setIsGenerating(true);
+    setIsModelLoading(true);
+    
+    // Progressive loading messages for better UX during presentation
+    setStatusMessage('🤖 AI analyzing your prompt...');
+    setTimeout(() => setStatusMessage('🎨 Selecting optimal color palette...'), 700);
+    setTimeout(() => setStatusMessage('🧵 Generating fabric pattern...'), 1400);
+    setTimeout(() => setStatusMessage('✨ Applying realistic textures...'), 2100);
+    
+    try {
+      const result = await generateDesignFromText(promptText);
+      setStatusMessage('🎯 Finalizing design...');
+      
+      // Use ref to get the absolute latest state before merging
+      const current = designStateRef.current;
+      const newState: DesignState = {
+        ...current,
+        color: result.suggestedColor,
+        textureUrl: result.texturePattern,
+        description: result.designDescription
+      };
+      
+      applyDesignChange(newState);
+      setStatusMessage('✅ Design created successfully!');
+      setTimeout(() => setIsModelLoading(false), 500);
+    } catch (error) {
+      setStatusMessage('❌ Failed to generate design');
+      setIsModelLoading(false);
+    } finally {
+      setIsGenerating(false);
+      setTimeout(() => setStatusMessage(''), 3500);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setIsGenerating(true);
+      setIsModelLoading(true);
+      
+      setStatusMessage('📸 Analyzing reference image...');
+      setTimeout(() => setStatusMessage('🔍 Extracting design elements...'), 600);
+      setTimeout(() => setStatusMessage('🎨 Mapping colors and patterns...'), 1200);
+
+      try {
+        const result = await generateDesignFromImage(file);
+        
+        const current = designStateRef.current;
+        const newState: DesignState = {
+          ...current,
+          color: result.suggestedColor,
+          textureUrl: result.texturePattern,
+          description: result.designDescription
+        };
+
+        applyDesignChange(newState);
+        setStatusMessage('✅ Design applied from image!');
+        setTimeout(() => setIsModelLoading(false), 500);
+      } catch (error) {
+        setStatusMessage('❌ Failed to process image');
+        setIsModelLoading(false);
+      } finally {
+        setIsGenerating(false);
+        setTimeout(() => setStatusMessage(''), 3500);
+      }
+    }
+  };
+
+  const handleModelUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const url = URL.createObjectURL(file);
+      applyDesignChange({ ...designState, customModelUrl: url });
+      setStatusMessage(`Model ${file.name} dimuat!`);
+      setTimeout(() => setStatusMessage(''), 3000);
+    }
+  };
+
+  const handleTemplateSelect = (template: DesignTemplate) => {
+    const current = designStateRef.current;
+    const newState: DesignState = {
+      ...current,
+      garmentType: template.garmentType as GarmentType,
+      color: template.color,
+      textureUrl: template.textureUrl,
+      description: template.description,
+      fit: template.fit as FitType,
+      projectName: template.name
+    };
+    
+    applyDesignChange(newState);
+    setStatusMessage(`Template "${template.name}" diterapkan!`);
+    setTimeout(() => setStatusMessage(''), 3000);
+  };
+
+  const handleChatSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim()) return;
+
+    const userMsg = chatInput;
+    setChatInput('');
+    setChatHistory(prev => [...prev, { role: 'user', content: userMsg }]);
+    setIsChatLoading(true);
+
+    const reply = await chatWithAiAssistant(chatHistory, userMsg);
+    
+    setChatHistory(prev => [...prev, { role: 'assistant', content: reply }]);
+    setIsChatLoading(false);
+  };
+
+  const handleExport = (type: 'png' | 'glb') => {
+    if (type === 'png') {
+      if (canvasRef.current) {
+        try {
+          const dataUrl = canvasRef.current.toDataURL('image/png');
+          const link = document.createElement('a');
+          link.download = `${designState.projectName.replace(/\s+/g, '_')}_design.png`;
+          link.href = dataUrl;
+          link.click();
+          setStatusMessage('Gambar berhasil didownload!');
+          setTimeout(() => setStatusMessage(''), 3000);
+        } catch (err) {
+          console.error("Screenshot failed:", err);
+          alert("Gagal mengambil screenshot. Pastikan browser mendukung.");
+        }
+      } else {
+        alert("Canvas belum siap untuk diekspor.");
+      }
+    } else {
+      // Stub for GLB export
+      alert(`Fitur Export GLB akan mengemas scene 3D saat ini ke file .glb.\n\nTODO: Implementasi GLTFExporter dari Three.js di sini.`);
+    }
+  };
+
+  return (
+    <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-gray-100">
+      
+      {/* --- Left Sidebar: Controls --- */}
+      <div className="w-80 bg-white border-r border-gray-200 flex flex-col overflow-y-auto">
+        <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+          <h2 className="text-lg font-semibold text-gray-800">Designer Tools</h2>
+          <div className="flex gap-1">
+            <button 
+              onClick={undo} 
+              disabled={historyIndex === 0}
+              className="p-1.5 rounded-md hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent text-gray-600 transition-colors"
+              title="Undo (Ctrl+Z)"
+            >
+              <Undo className="h-4 w-4" />
+            </button>
+            <button 
+              onClick={redo} 
+              disabled={historyIndex === history.length - 1}
+              className="p-1.5 rounded-md hover:bg-gray-100 disabled:opacity-30 disabled:hover:bg-transparent text-gray-600 transition-colors"
+              title="Redo (Ctrl+Y)"
+            >
+              <Redo className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+        
+        <div className="p-4 space-y-6">
+          {/* Quick Start - Template Library */}
+          <div className="bg-gradient-to-r from-slate-600 to-slate-700 rounded-lg p-4 text-white">
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles className="h-5 w-5" />
+              <h3 className="font-bold">Quick Start</h3>
+            </div>
+            <p className="text-sm opacity-90 mb-3">
+              Hemat waktu! Pilih dari 30+ template siap pakai
+            </p>
+            <button
+              onClick={() => setIsTemplateBrowserOpen(true)}
+              className="w-full bg-white text-slate-700 py-2 px-4 rounded-md font-medium hover:bg-slate-50 transition-colors flex items-center justify-center gap-2"
+            >
+              <Sparkles className="h-4 w-4" />
+              Buka Template Library
+            </button>
+          </div>
+
+          <div className="border-t border-gray-100 my-4"></div>
+
+          {/* Text to Design */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Deskripsi Teks (Prompt AI)
+            </label>
+            
+            {/* Sample Prompts - Quick Fill */}
+            <div className="mb-3 flex flex-wrap gap-2">
+              {[
+                "Hoodie oversized hitam dengan print minimalis",
+                "T-shirt putih dengan motif batik modern",
+                "Dress linen beige dengan pattern floral vintage"
+              ].map((sample, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setPromptText(sample)}
+                  className="text-xs px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md transition-colors"
+                  title="Klik untuk gunakan prompt ini"
+                >
+                  ✨ {sample.substring(0, 25)}...
+                </button>
+              ))}
+            </div>
+
+            <textarea 
+              className="w-full p-3 border border-gray-300 rounded-md text-sm focus:ring-slate-500 focus:border-slate-500"
+              rows={4}
+              placeholder="Contoh: 'Hoodie fleece navy blue dengan graphic print urban streetwear, style oversized dengan detail kangaroo pocket'"
+              value={promptText}
+              onChange={(e) => setPromptText(e.target.value)}
+            />
+            <div className="mt-1 text-xs text-gray-500 bg-blue-50 p-2 rounded border border-blue-100">
+              💡 <strong>Tips AI Maksimal:</strong> Semakin detail prompt, semakin realistis hasilnya. Sebutkan material, warna spesifik, dan style pattern.
+            </div>
+            <button 
+              onClick={handleTextGeneration}
+              disabled={isGenerating}
+              className={`mt-2 w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${isGenerating ? 'bg-slate-400' : 'bg-slate-600 hover:bg-slate-700'}`}
+            >
+              <Wand2 className="h-4 w-4 mr-2" />
+              {isGenerating ? 'Generating...' : 'Generate Design'}
+            </button>
+          </div>
+
+          <div className="border-t border-gray-100 my-4"></div>
+
+          {/* Image to Design */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Referensi Gambar
+            </label>
+            <div className="flex items-center justify-center w-full">
+              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                  <Upload className="w-8 h-8 mb-2 text-gray-400" />
+                  <p className="text-xs text-gray-500">Click to upload sketch/photo</p>
+                </div>
+                <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
+              </label>
+            </div>
+          </div>
+
+          <div className="border-t border-gray-100 my-4"></div>
+
+          {/* Custom Model Upload */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Model 3D (.glb)
+            </label>
+            <div className="flex items-center gap-2">
+               <label className="flex-1 flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 cursor-pointer">
+                 <Box className="h-4 w-4 mr-2" />
+                 {designState.customModelUrl ? 'Ganti Model' : 'Upload Model'}
+                 <input type="file" className="hidden" accept=".glb,.gltf" onChange={handleModelUpload} />
+               </label>
+               {designState.customModelUrl && (
+                 <button 
+                  onClick={() => applyDesignChange({ ...designState, customModelUrl: null })}
+                  className="p-2 text-red-500 hover:bg-red-50 rounded"
+                  title="Hapus Model"
+                 >
+                   <X className="h-4 w-4" />
+                 </button>
+               )}
+            </div>
+            {designState.customModelUrl && <p className="mt-1 text-xs text-green-600">Model kustom aktif</p>}
+          </div>
+
+          <div className="border-t border-gray-100 my-4"></div>
+
+          {/* Manual Controls */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Pengaturan Dasar</label>
+            <div className="space-y-3">
+              <div>
+                <span className="text-xs text-gray-500">Warna Dasar</span>
+                <div className="flex gap-2 mt-1">
+                  <input 
+                    type="color" 
+                    value={designState.color}
+                    onChange={(e) => applyDesignChange({...designState, color: e.target.value})}
+                    className="h-8 w-12 p-0 border-0 rounded cursor-pointer" 
+                  />
+                  <div className="text-sm py-1 px-2 bg-gray-100 rounded text-gray-600 uppercase">
+                    {designState.color}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Only show Garment Type selector if NO custom model is loaded */}
+              {!designState.customModelUrl && (
+                <div>
+                  <span className="text-xs text-gray-500">Tipe Pakaian</span>
+                  <select 
+                    value={designState.garmentType}
+                    onChange={(e) => applyDesignChange({...designState, garmentType: e.target.value})}
+                    className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-slate-500 focus:border-slate-500 sm:text-sm"
+                  >
+                    <option value={GarmentType.TSHIRT}>T-Shirt</option>
+                    <option value={GarmentType.HOODIE}>Hoodie</option>
+                    <option value={GarmentType.DRESS}>Dress</option>
+                  </select>
+                </div>
+              )}
+
+              <div>
+                 <span className="text-xs text-gray-500">Ukuran / Fit (Scale)</span>
+                 <select 
+                  value={designState.fit}
+                  onChange={(e) => applyDesignChange({...designState, fit: e.target.value as FitType})}
+                  className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-slate-500 focus:border-slate-500 sm:text-sm"
+                 >
+                   <option value="Regular">Regular Fit</option>
+                   <option value="Slim">Slim Fit</option>
+                   <option value="Oversized">Oversized / Baggy</option>
+                 </select>
+              </div>
+
+              {/* Texture Scale Control */}
+              {designState.textureUrl && (
+                <div className="pt-2 border-t border-dashed border-gray-200">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-xs text-gray-500">Skala Motif</span>
+                    <span className="text-xs text-gray-900">{designState.textureScale}x</span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="1" 
+                    max="10" 
+                    step="0.5"
+                    value={designState.textureScale}
+                    onChange={(e) => applyDesignChange({...designState, textureScale: parseFloat(e.target.value)})}
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-slate-600"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Quick Tips Panel */}
+          <div className="mt-4 p-3 bg-gradient-to-br from-slate-50 to-gray-50 rounded-lg border border-slate-200">
+            <h4 className="text-xs font-bold text-slate-800 mb-2">⚡ Tips Designer Pro:</h4>
+            <ul className="text-xs text-gray-700 space-y-1">
+              <li>🎯 <strong>Pemula?</strong> Gunakan Template Library di atas!</li>
+              <li>✍️ Prompt detail = hasil lebih realistis</li>
+              <li>📏 Atur skala motif 2-4x untuk proporsi natural</li>
+              <li>👔 Pilih fit sesuai style (Slim/Oversized)</li>
+              <li>📦 Upload .glb untuk custom 3D model</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* --- Center: 3D Preview --- */}
+      <div className="flex-1 flex flex-col relative bg-gray-200">
+        <div className="flex-1 p-6 flex flex-col gap-4 h-full">
+          
+          {/* Top: Fabric Preview (Simulated 2D generation result) */}
+          <div className="h-24 bg-white rounded-lg p-3 shadow-sm flex items-center gap-4">
+             <div className="w-16 h-16 rounded bg-gray-100 border border-gray-200 overflow-hidden flex-shrink-0">
+               {designState.textureUrl ? (
+                 <img src={designState.textureUrl} alt="Generated Pattern" className="w-full h-full object-cover" />
+               ) : (
+                 <div className="w-full h-full flex items-center justify-center text-xs text-gray-400 text-center">No Texture</div>
+               )}
+             </div>
+             <div className="flex-1">
+               <h4 className="text-sm font-medium text-gray-900">AI Generated Output</h4>
+               <p className="text-xs text-gray-500 line-clamp-2">
+                 {designState.description || "Belum ada desain yang digenerate. Gunakan panel kiri untuk mulai."}
+               </p>
+             </div>
+          </div>
+
+          {/* Main: 3D Viewer */}
+          <div className="flex-1 min-h-0 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative">
+            
+            {/* Quick Actions Toolbar */}
+            <div className="absolute top-4 left-4 z-10 flex gap-2">
+              <button
+                onClick={() => setAutoRotate(!autoRotate)}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all shadow-lg backdrop-blur-md ${
+                  autoRotate 
+                    ? 'bg-slate-600 text-white' 
+                    : 'bg-white/90 text-gray-700 hover:bg-white'
+                }`}
+                title="Toggle Auto Rotate"
+              >
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  {autoRotate ? 'Rotating' : 'Rotate'}
+                </div>
+              </button>
+              
+              <button
+                onClick={() => {
+                  // Reset camera - force re-render by toggling a state
+                  setAutoRotate(false);
+                  setTimeout(() => setAutoRotate(autoRotate), 50);
+                }}
+                className="px-3 py-2 bg-white/90 backdrop-blur-md text-gray-700 rounded-lg text-sm font-medium hover:bg-white transition-all shadow-lg"
+                title="Reset Camera View"
+              >
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
+                  </svg>
+                  Reset
+                </div>
+              </button>
+            </div>
+
+            {/* Loading Overlay */}
+            {isModelLoading && (
+              <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-20 flex items-center justify-center">
+                <div className="text-center">
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-slate-200 border-t-slate-600 mb-3"></div>
+                  <p className="text-sm text-gray-600 font-medium">Loading 3D Model...</p>
+                </div>
+              </div>
+            )}
+
+            <ThreeDViewer 
+              ref={canvasRef}
+              color={designState.color} 
+              textureUrl={designState.textureUrl}
+              garmentType={designState.garmentType}
+              fit={designState.fit}
+              textureScale={designState.textureScale}
+              customModelUrl={designState.customModelUrl}
+              autoRotate={autoRotate}
+              onLoadComplete={() => setIsModelLoading(false)}
+            />
+            
+            {statusMessage && (
+               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/70 text-white px-6 py-3 rounded-full text-sm font-medium backdrop-blur-md animate-pulse z-30">
+                 {statusMessage}
+               </div>
+            )}
+          </div>
+        </div>
+
+        {/* Chat Toggle Button */}
+        <button
+          onClick={() => setIsChatOpen(!isChatOpen)}
+          className="absolute bottom-6 right-6 bg-slate-600 text-white p-3 rounded-full shadow-lg hover:bg-slate-700 transition-colors z-20"
+        >
+          {isChatOpen ? <X className="h-6 w-6" /> : <MessageSquare className="h-6 w-6" />}
+        </button>
+
+        {/* Chat Assistant Panel */}
+        {isChatOpen && (
+          <div className="absolute bottom-20 right-6 w-80 bg-white rounded-xl shadow-xl border border-gray-200 flex flex-col h-96 z-20">
+            <div className="p-3 border-b bg-slate-50 rounded-t-xl flex justify-between items-center">
+              <h3 className="font-semibold text-gray-800 text-sm">Asisten Desain AI</h3>
+            </div>
+            <div className="flex-1 p-3 overflow-y-auto space-y-3 bg-gray-50">
+              {chatHistory.map((msg, idx) => (
+                <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${msg.role === 'user' ? 'bg-slate-600 text-white' : 'bg-white text-gray-800 border border-gray-200'}`}>
+                    {msg.content}
+                  </div>
+                </div>
+              ))}
+              {isChatLoading && <div className="text-xs text-gray-400 italic">Asisten sedang mengetik...</div>}
+            </div>
+            <form onSubmit={handleChatSubmit} className="p-2 border-t bg-white rounded-b-xl flex gap-2">
+              <input
+                type="text"
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                placeholder="Tanya ide desain..."
+                className="flex-1 text-sm border border-gray-300 rounded-md px-2 py-1 focus:ring-slate-500 focus:border-slate-500"
+              />
+              <button type="submit" className="bg-gray-100 hover:bg-gray-200 p-2 rounded-md text-gray-600">
+                <Send className="h-4 w-4" />
+              </button>
+            </form>
+          </div>
+        )}
+      </div>
+
+      {/* --- Right Sidebar: Details & Export --- */}
+      <div className="w-72 bg-white border-l border-gray-200 p-4 flex flex-col">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">Detail Proyek</h2>
+        
+        <div className="space-y-4 mb-auto">
+          <div>
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Nama Proyek</label>
+            <p className="text-sm font-medium text-gray-900 mt-1">{designState.projectName}</p>
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Jenis</label>
+            <p className="text-sm text-gray-900 mt-1">{designState.customModelUrl ? 'Custom Model' : designState.garmentType}</p>
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Fit</label>
+            <p className="text-sm text-gray-900 mt-1">{designState.fit}</p>
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Catatan</label>
+            <textarea 
+              className="mt-1 w-full text-sm border-gray-300 rounded-md shadow-sm border p-2 h-24"
+              placeholder="Tambahkan catatan teknis..."
+            ></textarea>
+          </div>
+        </div>
+
+        <div className="space-y-3 pt-6 border-t border-gray-200">
+           <button 
+             className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+             onClick={() => alert("Project saved to local state.")}
+           >
+             <Save className="h-4 w-4 mr-2" />
+             Simpan Desain
+           </button>
+           <button 
+            onClick={() => handleExport('png')}
+            className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+           >
+             <Download className="h-4 w-4 mr-2" />
+             Export Gambar (PNG)
+           </button>
+           <button 
+            onClick={() => handleExport('glb')}
+            className="w-full flex items-center justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-gray-800 hover:bg-gray-900"
+           >
+             <BoxIcon className="h-4 w-4 mr-2" />
+             Export 3D (GLB)
+           </button>
+        </div>
+      </div>
+
+      {/* Template Browser Modal */}
+      <TemplateBrowser 
+        isOpen={isTemplateBrowserOpen}
+        onClose={() => setIsTemplateBrowserOpen(false)}
+        onSelectTemplate={handleTemplateSelect}
+      />
+
+    </div>
+  );
+};
+
+// Simple Icon component helper
+const BoxIcon = ({ className }: { className?: string }) => (
+  <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+);
+
+export default DesignerPage;
