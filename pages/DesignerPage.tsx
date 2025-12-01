@@ -21,7 +21,7 @@ const DesignerPage: React.FC = () => {
     textureUrl: null,
     description: initialStateData?.project?.description || '',
     fit: 'Regular',
-    textureScale: 3,
+    textureScale: 8,
     customModelUrl: null
   });
 

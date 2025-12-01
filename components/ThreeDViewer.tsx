@@ -154,6 +154,7 @@ const CustomGLBModel: React.FC<{ url: string; color: string; textureUrl: string 
 
 // Separate component for textured material to conditionally call useTexture safely
 const TexturedMaterial: React.FC<{ url: string; color: string; scale: number }> = ({ url, color, scale }) => {
+  console.log('[TexturedMaterial] Rendering component for:', url);
   const texture = useTexture(url);
 
   useEffect(() => {
@@ -163,6 +164,10 @@ const TexturedMaterial: React.FC<{ url: string; color: string; scale: number }> 
   useLayoutEffect(() => {
     if (texture) {
       console.log('[TexturedMaterial] Texture loaded successfully:', url);
+      console.log('[TexturedMaterial] Image dimensions:', texture.image?.width, 'x', texture.image?.height);
+      console.log('[TexturedMaterial] Image type:', texture.image?.constructor.name);
+      console.log('[TexturedMaterial] Image src:', texture.image?.src || texture.image?.currentSrc);
+      
       texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
       texture.repeat.set(scale, scale);
       // Compatibility: use encoding instead of colorSpace
@@ -174,6 +179,8 @@ const TexturedMaterial: React.FC<{ url: string; color: string; scale: number }> 
       texture.magFilter = THREE.LinearFilter;
       
       texture.needsUpdate = true;
+    } else {
+      console.warn('[TexturedMaterial] Texture is null after loading');
     }
   }, [texture, scale, url]);
 
@@ -186,14 +193,14 @@ const TexturedMaterial: React.FC<{ url: string; color: string; scale: number }> 
       transparent={false}
       opacity={1.0}
       side={THREE.DoubleSide}
-      roughness={0.75}
-      metalness={0.0}
-      sheen={0.3}
+      roughness={0.35}
+      metalness={0.05}
+      sheen={0.6}
       sheenColor={new THREE.Color(0xffffff)}
-      sheenRoughness={0.6}
-      clearcoat={0.01}
-      clearcoatRoughness={0.8}
-      envMapIntensity={0.6}
+      sheenRoughness={0.4}
+      clearcoat={0.15}
+      clearcoatRoughness={0.5}
+      envMapIntensity={1.5}
       wireframe={false}
     />
   );
@@ -217,9 +224,11 @@ const BaseMaterial: React.FC<{ color: string; textureUrl: string | null; texture
     />
   );
 
+  console.log('[BaseMaterial] Using texture:', textureUrl ? 'YES' : 'NO', '| Color:', color);
+  
   return textureUrl ? (
     <TextureErrorBoundary key={textureUrl} fallback={fallbackMaterial}>
-      <TexturedMaterial url={textureUrl} color={color} scale={textureScale} />
+      <TexturedMaterial url={textureUrl} color="#ffffff" scale={textureScale} />
     </TextureErrorBoundary>
   ) : (
     fallbackMaterial

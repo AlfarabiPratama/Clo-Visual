@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Shirt, Menu, X } from 'lucide-react';
+import { Shirt, Menu, X, User, LogOut, Settings } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 // --- Minimal Router Implementation (Polyfill for react-router-dom) ---
 interface RouterContextType {
@@ -92,9 +93,31 @@ export const useNavigate = () => {
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [showUserMenu, setShowUserMenu] = React.useState(false);
   const location = useLocation();
+  const { user, isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+
+  // Close user menu when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      if (showUserMenu && !target.closest('.user-menu-container')) {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showUserMenu]);
 
   const isActive = (path: string) => location.pathname === path ? 'text-slate-600 font-semibold' : 'text-gray-600 hover:text-slate-600';
+
+  const handleLogout = () => {
+    logout();
+    setShowUserMenu(false);
+    navigate('/');
+  };
 
   return (
     <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
@@ -114,9 +137,59 @@ const Navbar: React.FC = () => {
             <Link to="/projects" className={isActive('/projects')}>Projects</Link>
             <Link to="/pricing" className={isActive('/pricing')}>Pricing</Link>
             <div className="text-gray-400">|</div>
-            <Link to="/projects" className="bg-gray-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">
-              Masuk
-            </Link>
+            
+            {isAuthenticated && user ? (
+              <div className="relative user-menu-container">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  {user.avatar ? (
+                    <img src={user.avatar} alt={user.name} className="w-8 h-8 rounded-full" />
+                  ) : (
+                    <div className="w-8 h-8 bg-slate-600 rounded-full flex items-center justify-center">
+                      <User className="w-4 h-4 text-white" />
+                    </div>
+                  )}
+                  <span className="text-sm font-medium text-gray-700">{user.name}</span>
+                </button>
+
+                {showUserMenu && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-50">
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setShowUserMenu(false);
+                        navigate('/projects');
+                      }}
+                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                    >
+                      <Settings className="w-4 h-4" />
+                      Settings
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <Link to="/login" className="text-gray-600 hover:text-slate-600 text-sm font-medium">
+                  Masuk
+                </Link>
+                <Link to="/register" className="bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-700 transition-colors">
+                  Daftar Gratis
+                </Link>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center md:hidden">
@@ -137,6 +210,29 @@ const Navbar: React.FC = () => {
             <Link to="/" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-slate-600 hover:bg-gray-50">Home</Link>
             <Link to="/projects" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-slate-600 hover:bg-gray-50">Projects</Link>
             <Link to="/pricing" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-slate-600 hover:bg-gray-50">Pricing</Link>
+            
+            {isAuthenticated && user ? (
+              <>
+                <div className="px-3 py-2 border-t border-gray-100 mt-2">
+                  <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                  <p className="text-xs text-gray-500">{user.email}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    handleLogout();
+                    setIsOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-slate-600 hover:bg-gray-50">Masuk</Link>
+                <Link to="/register" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium bg-slate-600 text-white hover:bg-slate-700">Daftar Gratis</Link>
+              </>
+            )}
           </div>
         </div>
       )}
