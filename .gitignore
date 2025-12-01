@@ -8,6 +8,12 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+
+# Environment variables (contains API keys)
+.env
+.env.local
+.env.production
+.env.development
 dist
 dist-ssr
 *.local

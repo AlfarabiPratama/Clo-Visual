@@ -3,8 +3,8 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { AiResponse } from "../types";
 
 // Initialize Gemini
-// Note: In a real production app, API keys should not be exposed on the client side directly
-// without proper restrictions, or calls should be proxied through a backend.
+// API key will be removed from .env.local and set as environment variable in Vercel
+// For local development, you can still use VITE_GEMINI_API_KEY
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
