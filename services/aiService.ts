@@ -30,21 +30,33 @@ export const generateDesignFromText = async (prompt: string): Promise<AiResponse
 
     const apiPromise = ai!.models.generateContent({
       model: 'gemini-2.5-flash',
-      contents: `You are an expert fashion and textile design AI assistant specializing in realistic fabric patterns and garment designs.
+      contents: `You are a professional fashion textile designer. Create a realistic fabric design based on this request:
 
-Analyze this design request: "${prompt}"
+USER REQUEST: "${prompt}"
 
-Consider:
-- Fabric texture authenticity (cotton weave, jersey knit, batik, etc.)
-- Color theory and fashion trends
-- Pattern scale and repetition
-- Realistic garment draping and fit
-- Cultural and seasonal appropriateness
+IMPORTANT INSTRUCTIONS:
+1. Extract the EXACT fabric type, color, and pattern mentioned in the user's request
+2. If user mentions specific color (e.g., "hitam", "putih", "navy blue"), use that EXACT color
+3. If user mentions specific pattern (e.g., "geometric", "batik", "stripes"), use that EXACT pattern
+4. The design MUST match what the user explicitly requested
 
-Return a JSON object with:
-1. suggestedColor: Professional hex color code that works well for fabric
-2. designDescription: Detailed Indonesian description (2-3 sentences) covering fabric type, pattern style, and intended use
-3. texturePattern: SINGLE keyword from: jersey-knit, batik-modern, stripes, floral, geometric, plain, denim, cotton`,
+Return JSON with:
+- suggestedColor: Hex code matching user's color request (or complementary if not specified)
+- designDescription: Indonesian description (2 sentences) explaining the fabric type, color, and pattern that matches user's request
+- texturePattern: Choose ONE keyword that BEST MATCHES user's request from these options:
+  * "jersey-knit" (for plain t-shirt fabric, cotton jersey)
+  * "batik-modern" (for batik patterns, Indonesian traditional)
+  * "stripes" (for striped patterns, lines)
+  * "floral" (for flower patterns, botanical)
+  * "geometric" (for geometric shapes, abstract patterns)
+  * "plain" (for solid color only, no pattern)
+  * "denim" (for jeans texture, denim fabric)
+  * "cotton" (for plain cotton weave texture)
+
+EXAMPLES:
+- "T-shirt hitam dengan motif geometric" → suggestedColor: "#000000", texturePattern: "geometric"
+- "Hoodie putih polos" → suggestedColor: "#FFFFFF", texturePattern: "plain"
+- "Kaos navy blue dengan pattern batik" → suggestedColor: "#000080", texturePattern: "batik-modern"`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -52,7 +64,7 @@ Return a JSON object with:
           properties: {
             suggestedColor: { type: Type.STRING },
             designDescription: { type: Type.STRING },
-            texturePattern: { type: Type.STRING, description: "A specific pattern keyword for realistic fabric texture" }
+            texturePattern: { type: Type.STRING, description: "MUST be one of: jersey-knit, batik-modern, stripes, floral, geometric, plain, denim, cotton" }
           }
         }
       }
@@ -61,20 +73,42 @@ Return a JSON object with:
     const response = await Promise.race([apiPromise, timeoutPromise]) as any;
     const data = JSON.parse(response.text || '{}');
     
-    // Map pattern keywords to realistic fabric textures
+    console.log('[AI Response]', data); // Debug log to see what Gemini returns
+    
+    // Map pattern keywords to realistic fabric textures from Unsplash
     const patternMap: Record<string, string> = {
       'jersey-knit': 'https://images.unsplash.com/photo-1558769132-cb1aea1f3f69?w=512&h=512&fit=crop',
+      'jersey': 'https://images.unsplash.com/photo-1558769132-cb1aea1f3f69?w=512&h=512&fit=crop',
+      'knit': 'https://images.unsplash.com/photo-1558769132-cb1aea1f3f69?w=512&h=512&fit=crop',
       'batik-modern': 'https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=512&h=512&fit=crop',
+      'batik': 'https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=512&h=512&fit=crop',
       'stripes': 'https://images.unsplash.com/photo-1562137369-1a1a0bc66744?w=512&h=512&fit=crop',
+      'stripe': 'https://images.unsplash.com/photo-1562137369-1a1a0bc66744?w=512&h=512&fit=crop',
+      'garis': 'https://images.unsplash.com/photo-1562137369-1a1a0bc66744?w=512&h=512&fit=crop',
       'floral': 'https://images.unsplash.com/photo-1604695573706-53170668f6a6?w=512&h=512&fit=crop',
+      'flower': 'https://images.unsplash.com/photo-1604695573706-53170668f6a6?w=512&h=512&fit=crop',
+      'bunga': 'https://images.unsplash.com/photo-1604695573706-53170668f6a6?w=512&h=512&fit=crop',
       'geometric': 'https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=512&h=512&fit=crop',
+      'geometry': 'https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=512&h=512&fit=crop',
+      'abstract': 'https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=512&h=512&fit=crop',
       'plain': null, // No texture, solid color only
+      'polos': null,
+      'solid': null,
       'denim': 'https://images.unsplash.com/photo-1582552938357-32b906df40cb?w=512&h=512&fit=crop',
-      'cotton': 'https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?w=512&h=512&fit=crop'
+      'jeans': 'https://images.unsplash.com/photo-1582552938357-32b906df40cb?w=512&h=512&fit=crop',
+      'cotton': 'https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?w=512&h=512&fit=crop',
+      'katun': 'https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?w=512&h=512&fit=crop'
     };
     
-    const patternKey = (data.texturePattern || 'plain').toLowerCase();
-    const matchedPattern = Object.keys(patternMap).find(key => patternKey.includes(key));
+    // Flexible pattern matching: try exact match first, then substring match
+    const patternKey = (data.texturePattern || 'plain').toLowerCase().trim();
+    let matchedPattern = patternMap[patternKey]; // Exact match
+    
+    if (matchedPattern === undefined) {
+      // Substring match
+      const foundKey = Object.keys(patternMap).find(key => patternKey.includes(key) || key.includes(patternKey));
+      matchedPattern = foundKey ? patternMap[foundKey] : null;
+    }
     
     return {
       suggestedColor: data.suggestedColor || "#ffffff",
