@@ -90,32 +90,39 @@ EXAMPLES:
     }
     
     // ============================================
-    // OPSI A: Map Pattern ke Local Textures
+    // OPSI A+: Direct URLs dari Subtle Patterns (No Download Required)
     // ============================================
-    // Path lokal untuk texture files (support SVG & PNG)
-    // SVG cocok untuk geometric/simple patterns, PNG untuk realistic textures
+    // Langsung pakai CDN Subtle Patterns - pattern terdeteksi otomatis dari AI
     const patternMap: Record<string, string | null> = {
-      // SVG patterns (geometric, simple shapes - Hero Patterns, Pattern Monster)
-      'geometric': '/textures/geometric.svg',
-      'geometry': '/textures/geometric.svg',
-      'abstract': '/textures/geometric.svg',
-      'stripes': '/textures/stripes.svg',
-      'stripe': '/textures/stripes.svg',
-      'garis': '/textures/stripes.svg',
+      // Fabric textures - Direct dari Subtle Patterns CDN
+      'jersey-knit': 'https://www.toptal.com/designers/subtlepatterns/uploads/fabric_1.png',
+      'jersey': 'https://www.toptal.com/designers/subtlepatterns/uploads/fabric_1.png',
+      'knit': 'https://www.toptal.com/designers/subtlepatterns/uploads/fabric_1.png',
+      'cotton': 'https://www.toptal.com/designers/subtlepatterns/uploads/cloth-alike.png',
+      'katun': 'https://www.toptal.com/designers/subtlepatterns/uploads/cloth-alike.png',
       
-      // PNG patterns (realistic textures - photo-based)
-      'jersey-knit': '/textures/knit.png',
-      'jersey': '/textures/knit.png',
-      'knit': '/textures/knit.png',
+      // Denim & jeans textures
+      'denim': 'https://www.toptal.com/designers/subtlepatterns/uploads/denim.png',
+      'jeans': 'https://www.toptal.com/designers/subtlepatterns/uploads/denim.png',
+      
+      // Geometric patterns - Hero Patterns style URLs
+      'geometric': 'https://www.toptal.com/designers/subtlepatterns/uploads/hexellence.png',
+      'geometry': 'https://www.toptal.com/designers/subtlepatterns/uploads/hexellence.png',
+      'abstract': 'https://www.toptal.com/designers/subtlepatterns/uploads/diagmonds.png',
+      
+      // Stripes & lines
+      'stripes': 'https://www.toptal.com/designers/subtlepatterns/uploads/project_papper.png',
+      'stripe': 'https://www.toptal.com/designers/subtlepatterns/uploads/project_papper.png',
+      'garis': 'https://www.toptal.com/designers/subtlepatterns/uploads/project_papper.png',
+      
+      // Floral & organic patterns
+      'floral': 'https://www.toptal.com/designers/subtlepatterns/uploads/moroccan-flower-dark.png',
+      'flower': 'https://www.toptal.com/designers/subtlepatterns/uploads/moroccan-flower-dark.png',
+      'bunga': 'https://www.toptal.com/designers/subtlepatterns/uploads/moroccan-flower-dark.png',
+      
+      // Batik - Indonesian traditional pattern (local fallback)
       'batik-modern': '/textures/batik.png',
       'batik': '/textures/batik.png',
-      'floral': '/textures/floral.png',
-      'flower': '/textures/floral.png',
-      'bunga': '/textures/floral.png',
-      'denim': '/textures/denim.png',
-      'jeans': '/textures/denim.png',
-      'cotton': '/textures/cotton.png',
-      'katun': '/textures/cotton.png',
       
       // No texture
       'plain': null,

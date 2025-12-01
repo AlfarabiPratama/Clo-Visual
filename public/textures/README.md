@@ -2,25 +2,33 @@
 
 Folder ini berisi seamless pattern textures untuk aplikasi Clo Visual.
 
-## File yang Diperlukan:
+## 🚀 Update: Direct CDN Loading
 
-Download seamless patterns (512x512px atau 1024x1024px, PNG format) dan simpan di folder ini:
+**Mayoritas textures sekarang load langsung dari Subtle Patterns CDN** - tidak perlu download manual!
 
-### Required Textures:
+Pattern yang sudah otomatis:
+- ✅ Fabric/Jersey/Knit → `fabric_1.png`
+- ✅ Cotton → `cloth-alike.png`
+- ✅ Denim/Jeans → `denim.png`
+- ✅ Geometric → `hexellence.png`
+- ✅ Stripes → `project_papper.png`
+- ✅ Floral → `moroccan-flower-dark.png`
 
-**SVG Files (Geometric/Simple Patterns):**
-- `geometric.svg` - Pola geometris (shapes, triangles, hexagons)
-- `stripes.svg` - Garis-garis horizontal/vertical
+## File yang Masih Perlu Download (Opsional):
 
-**PNG Files (Realistic/Photo Textures):**
-- `floral.png` - Pola bunga/botanical
-- `batik.png` - Motif batik Indonesia
-- `denim.png` - Tekstur kain denim/jeans
-- `knit.png` - Tekstur rajutan/jersey knit
-- `cotton.png` - Tekstur kain katun
+Hanya untuk pattern spesifik yang tidak ada di Subtle Patterns:
 
-> **Note**: SVG cocok untuk pattern vector sederhana (geometric, stripes).
-> PNG cocok untuk texture realistis (fabric, denim, floral).
+### Optional Local Textures (Only if you want custom patterns):
+
+**Custom Indonesian/Regional Patterns:**
+- `batik.png` - Motif batik Indonesia (not available on Subtle Patterns)
+
+**Custom Overrides (if you want different patterns):**
+- `geometric.svg` - Override default hexellence pattern
+- `stripes.svg` - Override default project_papper pattern
+- Any other custom texture you want to use
+
+> **Note**: Sistem akan cek local files dulu, kalau tidak ada baru pakai CDN URL.
 
 ## Sumber Download Gratis:
 
@@ -106,11 +114,13 @@ Download seamless patterns (512x512px atau 1024x1024px, PNG format) dan simpan d
 
 ## Testing:
 
-Setelah download dan simpan textures, refresh aplikasi dan test dengan prompt:
+Test dengan prompt berikut (no download required - langsung dari CDN):
 
-- "T-shirt hitam dengan motif geometric" → pakai geometric.png
-- "Kaos putih dengan garis-garis" → pakai stripes.png
-- "Hoodie dengan motif bunga" → pakai floral.png
+- "T-shirt hitam dengan motif geometric" → Load dari: `hexellence.png` (CDN)
+- "Kaos putih dengan garis-garis" → Load dari: `project_papper.png` (CDN)
+- "Hoodie dengan motif bunga" → Load dari: `moroccan-flower-dark.png` (CDN)
+- "Kaos dengan tekstur denim" → Load dari: `denim.png` (CDN)
+- "T-shirt fabric jersey" → Load dari: `fabric_1.png` (CDN)
 
 ## Fallback System:
 
