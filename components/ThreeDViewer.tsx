@@ -107,9 +107,13 @@ const CustomGLBModelWithColor: React.FC<{ url: string; color: string }> = ({ url
 
 // Wrapper component to choose between texture/color variants
 const CustomGLBModel: React.FC<{ url: string; color: string; textureUrl: string | null; textureScale: number }> = ({ url, color, textureUrl, textureScale }) => {
+  console.log('[CustomGLBModel] Rendering with:', { url, color, textureUrl, textureScale });
+  
   if (textureUrl) {
+    console.log('[CustomGLBModel] Using texture variant');
     return <CustomGLBModelWithTexture url={url} textureUrl={textureUrl} textureScale={textureScale} />;
   }
+  console.log('[CustomGLBModel] Using color-only variant');
   return <CustomGLBModelWithColor url={url} color={color} />;
 };
 
