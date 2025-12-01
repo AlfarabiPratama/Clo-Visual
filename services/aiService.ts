@@ -4,18 +4,21 @@ import { AiResponse, BatchDesignResult, ColorPaletteResult } from "../types";
 
 // AI Provider Configuration
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
 const DEEPSEEK_API_KEY = import.meta.env.VITE_DEEPSEEK_API_KEY;
+const OPENAI_BASE_URL = 'https://api.openai.com/v1';
 const DEEPSEEK_BASE_URL = 'https://api.deepseek.com/v1';
 
 // Initialize Gemini
 const geminiAI = GEMINI_API_KEY ? new GoogleGenAI({ apiKey: GEMINI_API_KEY }) : null;
 
 // Available AI providers
-type AIProvider = 'gemini' | 'deepseek' | 'mock';
+type AIProvider = 'gemini' | 'openai' | 'deepseek' | 'mock';
 
-// Determine which provider to use (priority: Gemini > DeepSeek > Mock)
+// Determine which provider to use (priority: Gemini > OpenAI > DeepSeek > Mock)
 const getActiveProvider = (): AIProvider => {
   if (GEMINI_API_KEY && geminiAI) return 'gemini';
+  if (OPENAI_API_KEY) return 'openai';
   if (DEEPSEEK_API_KEY) return 'deepseek';
   return 'mock';
 };
@@ -46,6 +49,31 @@ const callDeepSeekAPI = async (messages: Array<{role: string, content: string}>,
 
   if (!response.ok) {
     throw new Error(`DeepSeek API error: ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.choices[0]?.message?.content || '';
+};
+
+// OpenAI API Call Helper
+const callOpenAI = async (messages: Array<{role: string, content: string}>, responseFormat?: 'json'): Promise<string> => {
+  const response = await fetch(`${OPENAI_BASE_URL}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${OPENAI_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: messages,
+      temperature: 0.7,
+      max_tokens: 2000,
+      ...(responseFormat === 'json' ? { response_format: { type: 'json_object' } } : {})
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error(`OpenAI API error: ${response.statusText}`);
   }
 
   const data = await response.json();
@@ -99,7 +127,7 @@ EXAMPLES:
 
     if (provider === 'gemini') {
       apiPromise = geminiAI!.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-2.0-flash',
         contents: designPrompt,
         config: {
           responseMimeType: "application/json",
@@ -113,6 +141,12 @@ EXAMPLES:
           }
         }
       });
+    } else if (provider === 'openai') {
+      // OpenAI provider
+      apiPromise = callOpenAI([
+        { role: 'system', content: 'You are a professional fashion textile designer. Always return valid JSON responses.' },
+        { role: 'user', content: designPrompt }
+      ], 'json');
     } else {
       // DeepSeek provider
       apiPromise = callDeepSeekAPI([
@@ -127,7 +161,7 @@ EXAMPLES:
     if (provider === 'gemini') {
       data = JSON.parse(response.text || '{}');
     } else {
-      // DeepSeek returns string directly from our helper
+      // OpenAI and DeepSeek return string directly from our helper
       data = JSON.parse(response || '{}');
     }
     
@@ -226,20 +260,64 @@ EXAMPLES:
 export const generateDesignFromImage = async (imageFile: File): Promise<AiResponse> => {
   const provider = getActiveProvider();
   
-  // Note: DeepSeek may not support image analysis, so we'll use Gemini only for now
-  // or fall back to mock if Gemini is not available
+  // Note: Image analysis works with Gemini and OpenAI, not DeepSeek
   if (provider === 'mock' || provider === 'deepseek') {
     await new Promise(resolve => setTimeout(resolve, 2000));
     return {
       suggestedColor: "#3B82F6",
       designDescription: provider === 'deepseek' 
-        ? "Analisis gambar memerlukan Gemini API. Gunakan Text-to-Design untuk hasil optimal."
+        ? "Analisis gambar memerlukan Gemini/OpenAI API. Gunakan Text-to-Design untuk hasil optimal."
         : "Dianalisis dari gambar referensi (Mode Demo): Gaya minimalis dengan aksen biru.",
       texturePattern: null
     };
   }
 
   try {
+    if (provider === 'openai') {
+      // OpenAI Vision API
+      const reader = new FileReader();
+      const base64Promise = new Promise<string>((resolve) => {
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(imageFile);
+      });
+      const base64Image = await base64Promise;
+
+      const response = await callOpenAI([
+        {
+          role: 'user',
+          content: `Analyze this fashion design image. Extract:
+1. Dominant color (hex code)
+2. Design style and description (Indonesian, 2-3 sentences)
+3. Pattern type (keywords: jersey-knit, batik-modern, stripes, floral, geometric, plain, denim, cotton)
+
+Image: ${base64Image}
+
+Return JSON format with fields: suggestedColor, designDescription, texturePattern`
+        }
+      ], 'json');
+
+      const data = JSON.parse(response || '{}');
+      
+      const patternMap: Record<string, string> = {
+        'jersey-knit': 'https://images.unsplash.com/photo-1558769132-cb1aea1f3f69?w=512&h=512&fit=crop',
+        'batik-modern': 'https://images.unsplash.com/photo-1610701596007-11502861dcfa?w=512&h=512&fit=crop',
+        'stripes': 'https://images.unsplash.com/photo-1562137369-1a1a0bc66744?w=512&h=512&fit=crop',
+        'floral': 'https://images.unsplash.com/photo-1604695573706-53170668f6a6?w=512&h=512&fit=crop',
+        'geometric': 'https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=512&h=512&fit=crop',
+        'plain': null,
+        'denim': 'https://images.unsplash.com/photo-1582552938357-32b906df40cb?w=512&h=512&fit=crop',
+        'cotton': 'https://images.unsplash.com/photo-1616486029423-aaa4789e8c9a?w=512&h=512&fit=crop'
+      };
+      
+      const patternKey = (data.texturePattern || 'plain').toLowerCase();
+      const matchedPattern = Object.keys(patternMap).find(key => patternKey.includes(key));
+
+      return {
+        suggestedColor: data.suggestedColor || "#3B82F6",
+        designDescription: data.designDescription || "Dianalisis dari gambar referensi.",
+        texturePattern: matchedPattern ? patternMap[matchedPattern] : null
+      };
+    }
     // Convert image to base64
     const reader = new FileReader();
     const base64Promise = new Promise<string>((resolve) => {
@@ -249,7 +327,7 @@ export const generateDesignFromImage = async (imageFile: File): Promise<AiRespon
     const base64Image = await base64Promise;
 
     const response = await geminiAI!.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.0-flash',
       contents: [
         {
           parts: [
@@ -350,7 +428,7 @@ PENTING: Jawab dalam Bahasa Indonesia kecuali user minta English.`;
     
     if (provider === 'gemini') {
       chatPromise = geminiAI!.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-2.0-flash',
         systemInstruction: systemPrompt,
         contents: [
           // Convert history to proper format
@@ -365,6 +443,17 @@ PENTING: Jawab dalam Bahasa Indonesia kecuali user minta English.`;
           }
         ]
       });
+    } else if (provider === 'openai') {
+      // OpenAI provider
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        ...history.map(h => ({
+          role: h.role === 'assistant' ? 'assistant' : 'user',
+          content: h.content
+        })),
+        { role: 'user', content: newMessage }
+      ];
+      chatPromise = callOpenAI(messages);
     } else {
       // DeepSeek provider
       const messages = [
@@ -384,6 +473,7 @@ PENTING: Jawab dalam Bahasa Indonesia kecuali user minta English.`;
     if (provider === 'gemini') {
       replyText = response.text || "Maaf, saya tidak dapat menghasilkan respon saat ini. Silakan coba lagi.";
     } else {
+      // OpenAI and DeepSeek return string directly
       replyText = response || "Maaf, saya tidak dapat menghasilkan respon saat ini. Silakan coba lagi.";
     }
     
@@ -468,7 +558,7 @@ Make each variation unique and appealing.`;
 
     if (provider === 'gemini') {
       batchPromise = geminiAI!.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-2.0-flash',
         contents: [{ parts: [{ text: `${systemPrompt}\n\nUser prompt: "${prompt}"` }] }],
         config: {
           responseMimeType: "application/json",
@@ -491,6 +581,12 @@ Make each variation unique and appealing.`;
           }
         }
       });
+    } else if (provider === 'openai') {
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `Generate 5 variations for: "${prompt}"` }
+      ];
+      batchPromise = callOpenAI(messages, 'json');
     } else {
       const messages = [
         { role: 'system', content: systemPrompt },
@@ -505,6 +601,7 @@ Make each variation unique and appealing.`;
     if (provider === 'gemini') {
       data = JSON.parse(response.text || '{}');
     } else {
+      // OpenAI and DeepSeek return string
       data = JSON.parse(response || '{}');
     }
 
@@ -577,7 +674,7 @@ Make it professional and trendy for 2025.`;
 
     if (provider === 'gemini') {
       palettePromise = geminiAI!.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-2.0-flash',
         contents: [{ parts: [{ text: `${systemPrompt}\n\nContext: "${context}"` }] }],
         config: {
           responseMimeType: "application/json",
@@ -602,6 +699,12 @@ Make it professional and trendy for 2025.`;
           }
         }
       });
+    } else if (provider === 'openai') {
+      const messages = [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `Generate color palette for: "${context}"` }
+      ];
+      palettePromise = callOpenAI(messages, 'json');
     } else {
       const messages = [
         { role: 'system', content: systemPrompt },
@@ -616,6 +719,7 @@ Make it professional and trendy for 2025.`;
     if (provider === 'gemini') {
       data = JSON.parse(response.text || '{}');
     } else {
+      // OpenAI and DeepSeek return string
       data = JSON.parse(response || '{}');
     }
 
