@@ -135,6 +135,7 @@ const Navbar: React.FC = () => {
             <Link to="/" className={isActive('/')}>Home</Link>
             <Link to="/projects" className={isActive('/projects')}>Projects</Link>
             <Link to="/pricing" className={isActive('/pricing')}>Pricing</Link>
+            <Link to="/about" className={isActive('/about')}>About</Link>
             <div className="text-gray-400">|</div>
             
             {isAuthenticated && user ? (
@@ -162,7 +163,7 @@ const Navbar: React.FC = () => {
                     <button
                       onClick={() => {
                         setShowUserMenu(false);
-                        navigate('/projects');
+                        navigate('/settings');
                       }}
                       className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     >
@@ -209,6 +210,7 @@ const Navbar: React.FC = () => {
             <Link to="/" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-slate-600 hover:bg-gray-50">Home</Link>
             <Link to="/projects" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-slate-600 hover:bg-gray-50">Projects</Link>
             <Link to="/pricing" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-slate-600 hover:bg-gray-50">Pricing</Link>
+            <Link to="/about" onClick={() => setIsOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-slate-600 hover:bg-gray-50">About</Link>
             
             {isAuthenticated && user ? (
               <>
@@ -216,6 +218,13 @@ const Navbar: React.FC = () => {
                   <p className="text-sm font-medium text-gray-900">{user.name}</p>
                   <p className="text-xs text-gray-500">{user.email}</p>
                 </div>
+                <Link 
+                  to="/settings" 
+                  onClick={() => setIsOpen(false)} 
+                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-slate-600 hover:bg-gray-50"
+                >
+                  Settings
+                </Link>
                 <button
                   onClick={() => {
                     handleLogout();

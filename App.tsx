@@ -11,6 +11,9 @@ const DesignerPage = lazy(() => import('./pages/DesignerPage'));
 const PricingPage = lazy(() => import('./pages/PricingPage'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const RegisterPage = lazy(() => import('./pages/RegisterPage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const AboutPage = lazy(() => import('./pages/AboutPage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'));
 
 // Enhanced Footer Component
 const Footer: React.FC = () => (
@@ -35,7 +38,7 @@ const Footer: React.FC = () => (
             <li><a href="#/" className="hover:text-white transition-colors">Beranda</a></li>
             <li><a href="#/projects" className="hover:text-white transition-colors">Desain Saya</a></li>
             <li><a href="#/pricing" className="hover:text-white transition-colors">Harga</a></li>
-            <li><a href="#/designer" className="hover:text-white transition-colors">AI Designer</a></li>
+            <li><a href="#/about" className="hover:text-white transition-colors">Tentang Kami</a></li>
           </ul>
         </div>
 
@@ -106,7 +109,7 @@ const AppContent: React.FC = () => {
   // Don't show navbar and footer on login/register pages
   const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
   // Don't show footer on the designer page to maximize workspace
-  const showFooter = location.pathname !== '/designer' && !isAuthPage;
+  const showFooter = location.pathname !== '/designer' && !isAuthPage && location.pathname !== '/404';
 
   return (
     <div className="flex flex-col min-h-screen font-sans text-gray-900 bg-gray-50">
@@ -118,6 +121,8 @@ const AppContent: React.FC = () => {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/pricing" element={<PricingPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/404" element={<NotFoundPage />} />
             <Route 
               path="/projects" 
               element={
@@ -131,6 +136,14 @@ const AppContent: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <DesignerPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/settings" 
+              element={
+                <ProtectedRoute>
+                  <SettingsPage />
                 </ProtectedRoute>
               } 
             />
