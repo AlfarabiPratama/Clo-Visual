@@ -1,7 +1,6 @@
 <div align="center">
    <h1>Clo Visual – AI Powered 3D Fashion Canvas</h1>
    <p><strong>Generate realistic apparel designs (text/image) and visualize them instantly on interactive 3D garments.</strong></p>
-   <img src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" alt="Banner" />
    <p>
       <a href="https://github.com/AlfarabiPratama/Clo-Visual">Repo</a> ·
       <a href="#features">Features</a> ·
