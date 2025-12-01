@@ -15,6 +15,16 @@
     <meta name="twitter:title" content="Clo Visual – AI 3D Fashion Canvas" />
     <meta name="twitter:description" content="Generate desain fashion berbasis AI dan lihat langsung di 3D." />
     <meta name="theme-color" content="#0f172a" />
+    <!-- Content Security Policy: Block unauthorized requests -->
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self';
+      script-src 'self' 'unsafe-inline' 'unsafe-eval';
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      font-src 'self' https://fonts.gstatic.com;
+      img-src 'self' data: blob: https: http:;
+      connect-src 'self' https://generativelanguage.googleapis.com https://api.dicebear.com;
+      worker-src 'self' blob:;
+    ">
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="alternate icon" href="/favicon.ico" type="image/x-icon">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
