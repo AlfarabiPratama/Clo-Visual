@@ -508,22 +508,57 @@ const DesignerPage: React.FC = () => {
           <div className="flex-1 min-h-0 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative">
             
             {/* View Mode Controls - Top Left */}
-            <div className="absolute top-4 left-4 z-10 flex gap-2">
-              <button
-                onClick={() => setViewMode(viewMode === 'stylized' ? 'realistic' : 'stylized')}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all shadow-lg backdrop-blur-md ${
-                  viewMode === 'realistic'
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-white/90 text-gray-700 hover:bg-white'
-                }`}
-                title={`Switch to ${viewMode === 'stylized' ? 'Realistic' : 'Stylized'} Mode`}
-              >
-                <div className="flex items-center gap-2">
-                  <Box className="w-4 h-4" />
-                  {viewMode === 'realistic' ? 'Realistic' : 'Stylized'}
-                </div>
-              </button>
+            <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setViewMode('stylized')}
+                  className={`px-4 py-2.5 rounded-lg text-sm font-bold transition-all shadow-lg backdrop-blur-md ${
+                    viewMode === 'stylized'
+                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white ring-2 ring-purple-300' 
+                      : 'bg-white/90 text-gray-700 hover:bg-white'
+                  }`}
+                  title="Stylized Mode - Artistic & Illustrative"
+                >
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    Stylized
+                  </div>
+                </button>
+                
+                <button
+                  onClick={() => setViewMode('realistic')}
+                  className={`px-4 py-2.5 rounded-lg text-sm font-bold transition-all shadow-lg backdrop-blur-md ${
+                    viewMode === 'realistic'
+                      ? 'bg-gradient-to-r from-blue-600 to-cyan-500 text-white ring-2 ring-blue-300' 
+                      : 'bg-white/90 text-gray-700 hover:bg-white'
+                  }`}
+                  title="Realized Mode - Photorealistic & Production-ready"
+                >
+                  <div className="flex items-center gap-2">
+                    <Box className="w-4 h-4" />
+                    Realized
+                  </div>
+                </button>
+              </div>
               
+              {/* Mode Description */}
+              <div className="bg-white/95 backdrop-blur-md rounded-lg px-3 py-2 shadow-lg max-w-xs">
+                <p className="text-xs text-gray-700 leading-relaxed">
+                  {viewMode === 'stylized' ? (
+                    <>
+                      <span className="font-bold text-purple-600">🎨 Stylized:</span> Tampilan artistik dengan warna cerah, outline tegas, dan gaya ilustratif untuk presentasi konsep desain.
+                    </>
+                  ) : (
+                    <>
+                      <span className="font-bold text-blue-600">📸 Realized:</span> Render photorealistic dengan pencahayaan realistis, material akurat, dan detail kain untuk produksi final.
+                    </>
+                  )}
+                </p>
+              </div>
+            </div>
+            
+            {/* Auto Rotate - Moved to separate position */}
+            <div className="absolute top-4 right-4 z-10">
               <button
                 onClick={() => setAutoRotate(!autoRotate)}
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-all shadow-lg backdrop-blur-md ${
@@ -537,7 +572,7 @@ const DesignerPage: React.FC = () => {
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
-                  {autoRotate ? 'On' : 'Off'}
+                  Auto Rotate
                 </div>
               </button>
             </div>

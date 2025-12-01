@@ -206,8 +206,18 @@ const TexturedMaterial: React.FC<{ url: string; color: string; scale: number }> 
   );
 };
 
-const BaseMaterial: React.FC<{ color: string; textureUrl: string | null; textureScale: number; wireframe?: boolean }> = ({ color, textureUrl, textureScale, wireframe = false }) => {
-  const fallbackMaterial = (
+const BaseMaterial: React.FC<{ color: string; textureUrl: string | null; textureScale: number; wireframe?: boolean; viewMode?: 'stylized' | 'realistic' }> = ({ color, textureUrl, textureScale, wireframe = false, viewMode = 'stylized' }) => {
+  // Stylized mode: Flat, cartoon-like, vibrant colors
+  const stylizedMaterial = (
+    <meshToonMaterial 
+      color={color}
+      gradientMap={null} // Flat shading for cartoon look
+      wireframe={wireframe}
+    />
+  );
+
+  // Realistic mode: Photorealistic fabric with PBR
+  const realisticMaterial = (
     <meshPhysicalMaterial 
       color={color} 
       roughness={0.8}
@@ -224,7 +234,9 @@ const BaseMaterial: React.FC<{ color: string; textureUrl: string | null; texture
     />
   );
 
-  console.log('[BaseMaterial] Using texture:', textureUrl ? 'YES' : 'NO', '| Color:', color);
+  const fallbackMaterial = viewMode === 'stylized' ? stylizedMaterial : realisticMaterial;
+
+  console.log('[BaseMaterial] Using texture:', textureUrl ? 'YES' : 'NO', '| Color:', color, '| Mode:', viewMode);
   
   return textureUrl ? (
     <TextureErrorBoundary key={textureUrl} fallback={fallbackMaterial}>
@@ -246,7 +258,7 @@ const getFitScale = (fit: FitType): [number, number, number] => {
   }
 };
 
-const MockupTShirt: React.FC<{ color: string; textureUrl: string | null; fit: FitType; textureScale: number }> = ({ color, textureUrl, fit, textureScale }) => {
+const MockupTShirt: React.FC<{ color: string; textureUrl: string | null; fit: FitType; textureScale: number; viewMode?: 'stylized' | 'realistic' }> = ({ color, textureUrl, fit, textureScale, viewMode = 'stylized' }) => {
   const groupRef = useRef<THREE.Group>(null);
   const scale = getFitScale(fit);
 
@@ -269,9 +281,9 @@ const MockupTShirt: React.FC<{ color: string; textureUrl: string | null; fit: Fi
     <group ref={groupRef} dispose={null} scale={scale}>
       {/* Torso - Anatomical body shape with chest tapering to waist */}
       {/* Upper Chest - wider */}
-      <mesh position={[0, 0.45, 0]} scale={[1, 1, 0.7]} castShadow receiveShadow>
-        <sphereGeometry args={[0.48, 32, 16, 0, Math.PI * 2, 0, Math.PI * 0.5]} />
-        <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+      <mesh position={[0, 0.35, 0]} scale={[1.1, 1.2, 1]} castShadow receiveShadow>
+        <sphereGeometry args={[0.42, 32, 32, 0, Math.PI * 2, 0, Math.PI * 0.6]} />
+        <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} viewMode={viewMode} />
       </mesh>
       
       {/* Mid Torso */}
@@ -747,23 +759,40 @@ const ThreeDViewer = forwardRef(function ThreeDViewer(
     // Fallback to procedural models (stylized)
     switch (garmentType) {
       case GarmentType.HOODIE:
-        return <ProceduralHoodie color={color} textureUrl={textureUrl} fit={fit} textureScale={textureScale} />;
+        return <ProceduralHoodie color={color} textureUrl={textureUrl} fit={fit} textureScale={textureScale} viewMode={viewMode} />;
       case GarmentType.DRESS:
-        return <ProceduralDress color={color} textureUrl={textureUrl} fit={fit} textureScale={textureScale} />;
+        return <ProceduralDress color={color} textureUrl={textureUrl} fit={fit} textureScale={textureScale} viewMode={viewMode} />;
       case GarmentType.TSHIRT:
       default:
         // Use procedural T-shirt with realistic crew neck and sleeves
-        return <MockupTShirt color={color} textureUrl={textureUrl} fit={fit} textureScale={textureScale} />;
+        return <MockupTShirt color={color} textureUrl={textureUrl} fit={fit} textureScale={textureScale} viewMode={viewMode} />;
     }
   };
 
+  // Different background and rendering style based on viewMode
+  const backgroundStyle = viewMode === 'stylized' 
+    ? { background: 'linear-gradient(135deg, #ec4899 0%, #8b5cf6 50%, #6366f1 100%)' } // Purple-pink gradient for stylized
+    : { background: 'linear-gradient(135deg, #0b1120 0%, #1a1f35 50%, #0f1419 100%)' }; // Dark professional for realistic
+
+  const canvasBackground = viewMode === 'stylized'
+    ? 'linear-gradient(135deg, #fdf4ff 0%, #fae8ff 50%, #f5f3ff 100%)' // Light purple for stylized
+    : 'linear-gradient(135deg, #0b1120 0%, #1e293b 50%, #0f172a 100%)'; // Dark for realistic
+
   return (
-    <div className="w-full h-full rounded-lg overflow-hidden relative shadow-inner" style={{ background: 'linear-gradient(135deg, #0b1120 0%, #1a1f35 50%, #0f1419 100%)' }}>
+    <div className="w-full h-full rounded-lg overflow-hidden relative shadow-inner" style={backgroundStyle}>
       <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-1 pointer-events-none">
-        <div className="bg-white/80 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium text-gray-700 shadow-sm border border-gray-100">
+        <div className={`px-3 py-1 rounded-full text-xs font-medium shadow-sm border ${
+          viewMode === 'stylized' 
+            ? 'bg-purple-100/90 backdrop-blur-sm text-purple-700 border-purple-200'
+            : 'bg-white/80 backdrop-blur-sm text-gray-700 border-gray-100'
+        }`}>
           Model: {customModelUrl ? 'Custom Upload' : garmentType}
         </div>
-        <div className="bg-white/80 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium text-gray-500 shadow-sm border border-gray-100">
+        <div className={`px-3 py-1 rounded-full text-xs font-medium shadow-sm border ${
+          viewMode === 'stylized'
+            ? 'bg-pink-100/90 backdrop-blur-sm text-pink-700 border-pink-200'
+            : 'bg-white/80 backdrop-blur-sm text-gray-500 border-gray-100'
+        }`}>
           Fit: {fit}
         </div>
       </div>
@@ -777,8 +806,8 @@ const ThreeDViewer = forwardRef(function ThreeDViewer(
           antialias: true,
           alpha: false,
           powerPreference: 'high-performance',
-          toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.1,
+          toneMapping: viewMode === 'stylized' ? THREE.LinearToneMapping : THREE.ACESFilmicToneMapping,
+          toneMappingExposure: viewMode === 'stylized' ? 1.3 : 1.1,
           outputEncoding: 3001
         }}
         camera={{ position: [2.5, 0.5, 3], fov: 45 }}
@@ -792,40 +821,69 @@ const ThreeDViewer = forwardRef(function ThreeDViewer(
            // Make camera look at center
            camera.lookAt(0, 0, 0);
         }}
-        style={{ background: 'linear-gradient(135deg, #0b1120 0%, #1e293b 50%, #0f172a 100%)' }}
+        style={{ background: canvasBackground }}
       >
         <React.Suspense fallback={null}>
-          {/* Lighting Setup - Professional studio lighting */}
-          <ambientLight intensity={0.35} color="#f0f0f5" />
-          
-          {/* Key light - main illumination (optimized for mobile) */}
-          <directionalLight 
-            position={[5, 8, 5]} 
-            intensity={1.4} 
-            castShadow
-            shadow-mapSize-width={1024}
-            shadow-mapSize-height={1024}
-            shadow-camera-far={15}
-            shadow-camera-left={-3}
-            shadow-camera-right={3}
-            shadow-camera-top={3}
-            shadow-camera-bottom={-3}
-            shadow-bias={-0.0001}
-          />
-          
-          {/* Fill light - soften shadows */}
-          <directionalLight position={[-4, 4, -3]} intensity={0.5} color="#e8f0ff" />
-          
-          {/* Back rim light - edge definition */}
-          <directionalLight position={[0, 3, -7]} intensity={0.8} color="#fff8f0" />
-          
-          {/* Hemisphere for natural ambient */}
-          <hemisphereLight intensity={0.6} groundColor="#444444" color="#ffffff" />
-          
-          {/* Accent lights for fabric highlights */}
-          <pointLight position={[2, 1, 3]} intensity={0.4} distance={5} decay={2} />
-          <pointLight position={[-2, 1, 3]} intensity={0.4} distance={5} decay={2} />
-          <pointLight position={[0, -0.5, 2]} intensity={0.25} distance={3} decay={2} color="#ffeedd" />
+          {/* Lighting Setup - Different for each mode */}
+          {viewMode === 'stylized' ? (
+            <>
+              {/* Stylized: Bright, flat, cartoon-like lighting */}
+              <ambientLight intensity={0.8} color="#ffffff" />
+              
+              {/* Bright directional light for clear visibility */}
+              <directionalLight 
+                position={[3, 5, 4]} 
+                intensity={1.8} 
+                castShadow
+                shadow-mapSize-width={512}
+                shadow-mapSize-height={512}
+              />
+              
+              {/* Fill light to reduce harsh shadows */}
+              <directionalLight position={[-3, 3, -2]} intensity={1.2} color="#ffd4ff" />
+              
+              {/* Top light for vibrant look */}
+              <directionalLight position={[0, 6, 0]} intensity={0.9} color="#ffffff" />
+              
+              {/* Colorful accent lights for artistic effect */}
+              <pointLight position={[3, 2, 3]} intensity={0.8} distance={8} color="#ff6ec7" />
+              <pointLight position={[-3, 2, 3]} intensity={0.8} distance={8} color="#a78bfa" />
+            </>
+          ) : (
+            <>
+              {/* Realistic: Professional studio lighting with dramatic shadows */}
+              <ambientLight intensity={0.35} color="#f0f0f5" />
+              
+              {/* Key light - main illumination (optimized for mobile) */}
+              <directionalLight 
+                position={[5, 8, 5]} 
+                intensity={1.4} 
+                castShadow
+                shadow-mapSize-width={1024}
+                shadow-mapSize-height={1024}
+                shadow-camera-far={15}
+                shadow-camera-left={-3}
+                shadow-camera-right={3}
+                shadow-camera-top={3}
+                shadow-camera-bottom={-3}
+                shadow-bias={-0.0001}
+              />
+              
+              {/* Fill light - soften shadows */}
+              <directionalLight position={[-4, 4, -3]} intensity={0.5} color="#e8f0ff" />
+              
+              {/* Back rim light - edge definition */}
+              <directionalLight position={[0, 3, -7]} intensity={0.8} color="#fff8f0" />
+              
+              {/* Hemisphere for natural ambient */}
+              <hemisphereLight intensity={0.6} groundColor="#444444" color="#ffffff" />
+              
+              {/* Accent lights for fabric highlights */}
+              <pointLight position={[2, 1, 3]} intensity={0.4} distance={5} decay={2} />
+              <pointLight position={[-2, 1, 3]} intensity={0.4} distance={5} decay={2} />
+              <pointLight position={[0, -0.5, 2]} intensity={0.25} distance={3} decay={2} color="#ffeedd" />
+            </>
+          )}
           
           <CameraController preset={cameraPreset} />
           
@@ -833,14 +891,15 @@ const ThreeDViewer = forwardRef(function ThreeDViewer(
             {renderGarment()}
           </Center>
 
+          {/* Contact Shadows - Different style for each mode */}
           <ContactShadows 
             position={[0, -1.8, 0]} 
-            opacity={0.5} 
+            opacity={viewMode === 'stylized' ? 0.2 : 0.5} 
             scale={10} 
-            blur={2.2} 
+            blur={viewMode === 'stylized' ? 3.5 : 2.2} 
             far={3.5}
             resolution={512}
-            color="#000000"
+            color={viewMode === 'stylized' ? '#c084fc' : '#000000'}
           />
         </React.Suspense>
         
