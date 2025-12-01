@@ -18,7 +18,7 @@ const Footer: React.FC = () => (
       </div>
       <div className="mt-8 md:mt-0 md:order-1">
         <p className="text-center text-base text-gray-400">
-          &copy; 2024 Clo Vsual. University Startup Prototype.
+          &copy; 2025 Clo Visual. University Startup Prototype for Sistem Kecerdasan Buatan
         </p>
       </div>
     </div>

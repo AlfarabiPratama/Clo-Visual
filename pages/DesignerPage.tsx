@@ -17,7 +17,7 @@ const DesignerPage: React.FC = () => {
   const getInitialState = (): DesignState => ({
     projectName: initialStateData?.name || 'Untitled Project',
     garmentType: initialStateData?.type || initialStateData?.project?.garmentType || GarmentType.TSHIRT,
-    color: '#ffffff',
+    color: '#3b82f6', // Changed from white (#ffffff) to blue for visibility
     textureUrl: null,
     description: initialStateData?.project?.description || '',
     fit: 'Regular',

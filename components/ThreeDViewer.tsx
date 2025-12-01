@@ -38,7 +38,7 @@ class TextureErrorBoundary extends Component<TextureErrorBoundaryProps, TextureE
   }
 
   componentDidCatch(error: any, errorInfo: any) {
-    console.warn("Texture failed to load, reverting to base material.", error);
+    console.error("[TextureErrorBoundary] Texture failed to load, reverting to base material.", error, errorInfo);
   }
 
   render() {
@@ -95,15 +95,20 @@ const CustomGLBModel: React.FC<{ url: string; color: string; textureUrl: string 
 const TexturedMaterial: React.FC<{ url: string; color: string; scale: number }> = ({ url, color, scale }) => {
   const texture = useTexture(url);
 
+  useEffect(() => {
+    console.log('[TexturedMaterial] Loading texture:', url);
+  }, [url]);
+
   useLayoutEffect(() => {
     if (texture) {
+      console.log('[TexturedMaterial] Texture loaded successfully:', url);
       texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
       texture.repeat.set(scale, scale);
       // Compatibility: use encoding instead of colorSpace
       (texture as any).encoding = 3001; // sRGBEncoding
       texture.needsUpdate = true;
     }
-  }, [texture, scale]);
+  }, [texture, scale, url]);
 
   // Use MeshPhysicalMaterial for more realistic fabric rendering (sheen)
   return (
@@ -161,6 +166,11 @@ const getFitScale = (fit: FitType): [number, number, number] => {
 const MockupTShirt: React.FC<{ color: string; textureUrl: string | null; fit: FitType; textureScale: number }> = ({ color, textureUrl, fit, textureScale }) => {
   const groupRef = useRef<THREE.Group>(null);
   const scale = getFitScale(fit);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('[MockupTShirt] Mounted with props:', { color, textureUrl, fit, textureScale, scale });
+  }, [color, textureUrl, fit, textureScale, scale]);
 
   useFrame((state) => {
     if (groupRef.current) {
@@ -486,6 +496,16 @@ const ThreeDViewer = forwardRef(function ThreeDViewer(
   }, [onLoadComplete]);
   
   const renderGarment = () => {
+    // Debug logging
+    console.log('[ThreeDViewer] Rendering garment:', {
+      garmentType,
+      color,
+      textureUrl,
+      fit,
+      textureScale,
+      customModelUrl
+    });
+
     if (customModelUrl) {
       return (
         <React.Suspense fallback={null}>
@@ -511,7 +531,7 @@ const ThreeDViewer = forwardRef(function ThreeDViewer(
   };
 
   return (
-    <div className="w-full h-full bg-gray-50 rounded-lg overflow-hidden relative shadow-inner">
+    <div className="w-full h-full bg-gradient-to-b from-gray-100 to-gray-200 rounded-lg overflow-hidden relative shadow-inner">
       <div className="absolute top-4 left-4 z-10 flex flex-col items-start gap-1 pointer-events-none">
         <div className="bg-white/80 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium text-gray-700 shadow-sm border border-gray-100">
           Model: {customModelUrl ? 'Custom Upload' : garmentType}
@@ -533,7 +553,8 @@ const ThreeDViewer = forwardRef(function ThreeDViewer(
           toneMapping: THREE.ACESFilmicToneMapping,
           toneMappingExposure: 1.2,
           outputEncoding: 3001
-        }} 
+        }}
+        style={{ background: 'linear-gradient(to bottom, #e5e7eb 0%, #f3f4f6 100%)' }}
         camera={{ position: [0, 0.2, 4.2], fov: 42 }}
         onCreated={({ gl }) => {
            // Attach the canvas element to the forwarded ref
