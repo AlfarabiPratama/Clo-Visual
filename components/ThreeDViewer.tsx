@@ -110,18 +110,18 @@ const TexturedMaterial: React.FC<{ url: string; color: string; scale: number }> 
     }
   }, [texture, scale, url]);
 
-  // Use MeshPhysicalMaterial for more realistic fabric rendering (sheen)
+  // Use MeshPhysicalMaterial for realistic fabric rendering
   return (
     <meshPhysicalMaterial 
       color={color} 
       map={texture} 
-      roughness={0.85}
-      metalness={0.0}
-      sheen={0.7}
+      roughness={0.72}
+      metalness={0.03}
+      sheen={0.60}
       sheenColor={new THREE.Color(0xffffff)}
-      sheenRoughness={0.6}
-      clearcoat={0.05}
-      clearcoatRoughness={0.8}
+      sheenRoughness={0.68}
+      clearcoat={0.04}
+      clearcoatRoughness={0.82}
     />
   );
 };
@@ -130,16 +130,16 @@ const BaseMaterial: React.FC<{ color: string; textureUrl: string | null; texture
   const fallbackMaterial = (
     <meshPhysicalMaterial 
       color={color} 
-      roughness={0.88}
-      metalness={0.0}
-      sheen={0.85}
+      roughness={0.75}
+      metalness={0.02}
+      sheen={0.65}
       sheenColor={new THREE.Color(0xffffff)}
-      sheenRoughness={0.5}
-      clearcoat={0.08}
-      clearcoatRoughness={0.75}
+      sheenRoughness={0.65}
+      clearcoat={0.06}
+      clearcoatRoughness={0.80}
       flatShading={false}
-      envMapIntensity={0.6}
-      reflectivity={0.1}
+      envMapIntensity={0.5}
+      reflectivity={0.08}
     />
   );
 
@@ -330,93 +330,194 @@ const ProceduralHoodie: React.FC<{ color: string; textureUrl: string | null; fit
 
   useFrame((state) => {
     if (groupRef.current) {
-      groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.05;
+      // Subtle breathing animation
+      groupRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.015;
+      groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.3) * 0.02;
     }
   });
 
   return (
     <group ref={groupRef} dispose={null} scale={scale}>
-      {/* Main Body - Upper */}
-      <mesh position={[0, 0.25, 0]} castShadow receiveShadow>
-        <cylinderGeometry args={[0.52, 0.50, 0.9, 48]} />
+      {/* Shoulders - Broader, more defined */}
+      <mesh position={[0, 0.60, 0]} scale={[1.15, 0.85, 0.80]} castShadow receiveShadow>
+        <sphereGeometry args={[0.48, 48, 24, 0, Math.PI * 2, 0, Math.PI * 0.45]} />
         <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
       </mesh>
-      {/* Main Body - Lower */}
-      <mesh position={[0, -0.45, 0]} castShadow receiveShadow>
-        <cylinderGeometry args={[0.50, 0.54, 1.0, 48]} />
+      
+      {/* Chest - Anatomical shape with defined pecs */}
+      <mesh position={[0, 0.35, 0.08]} scale={[1.05, 1, 0.75]} castShadow receiveShadow>
+        <sphereGeometry args={[0.46, 48, 24, 0, Math.PI * 2, 0, Math.PI * 0.55]} />
         <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
       </mesh>
-      {/* Raglan Shoulders */}
-      <mesh position={[0, 0.60, 0]} castShadow receiveShadow>
-        <cylinderGeometry args={[0.54, 0.52, 0.25, 48]} />
+      
+      {/* Upper Torso - Chest to waist taper */}
+      <mesh position={[0, 0.05, 0]} scale={[1, 1, 0.72]} castShadow receiveShadow>
+        <cylinderGeometry args={[0.47, 0.44, 0.6, 48, 1]} />
         <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
       </mesh>
-      {/* Left Sleeve - Long */}
-      <group position={[-0.68, 0.25, 0]} rotation={[0, 0, Math.PI / 2.4]}>
-        <mesh position={[0, 0.15, 0]} castShadow receiveShadow>
-          <cylinderGeometry args={[0.15, 0.20, 0.6, 32]} />
+      
+      {/* Lower Torso - Slight flare at bottom for natural drape */}
+      <mesh position={[0, -0.38, 0]} scale={[1, 1, 0.70]} castShadow receiveShadow>
+        <cylinderGeometry args={[0.44, 0.48, 0.75, 48, 1]} />
+        <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+      </mesh>
+
+      {/* Left Sleeve - Natural arm curve with bend */}
+      <group position={[-0.65, 0.42, 0]} rotation={[0.1, 0, 0.35]}>
+        {/* Upper arm */}
+        <mesh position={[0, 0.10, 0]} rotation={[0.05, 0, 0]} castShadow receiveShadow>
+          <cylinderGeometry args={[0.16, 0.18, 0.5, 32]} />
           <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
         </mesh>
-        <mesh position={[0, -0.35, 0]} castShadow receiveShadow>
-          <cylinderGeometry args={[0.13, 0.15, 0.7, 32]} />
+        {/* Elbow area - slight bend */}
+        <mesh position={[0.02, -0.25, 0.08]} rotation={[0.15, 0, 0]} castShadow receiveShadow>
+          <cylinderGeometry args={[0.15, 0.14, 0.4, 32]} />
           <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
         </mesh>
-        {/* Cuff */}
-        <mesh position={[0, -0.72, 0]} castShadow receiveShadow>
-          <cylinderGeometry args={[0.14, 0.14, 0.08, 32]} />
-          <meshPhysicalMaterial color={color} roughness={0.95} sheen={0.3} />
+        {/* Forearm */}
+        <mesh position={[0.04, -0.50, 0.18]} rotation={[0.25, 0, 0]} castShadow receiveShadow>
+          <cylinderGeometry args={[0.14, 0.13, 0.35, 32]} />
+          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+        </mesh>
+        {/* Ribbed cuff - athletic detail */}
+        <group position={[0.05, -0.70, 0.28]} rotation={[0.25, 0, 0]}>
+          <mesh castShadow receiveShadow>
+            <cylinderGeometry args={[0.135, 0.135, 0.10, 32]} />
+            <meshPhysicalMaterial color={color} roughness={0.92} sheen={0.4} clearcoat={0.05} />
+          </mesh>
+          {/* Rib detail lines */}
+          <mesh position={[0, 0.035, 0]}>
+            <torusGeometry args={[0.135, 0.008, 12, 32]} />
+            <meshStandardMaterial color={color} roughness={0.95} />
+          </mesh>
+          <mesh position={[0, -0.035, 0]}>
+            <torusGeometry args={[0.135, 0.008, 12, 32]} />
+            <meshStandardMaterial color={color} roughness={0.95} />
+          </mesh>
+        </group>
+      </group>
+
+      {/* Right Sleeve - Mirror left */}
+      <group position={[0.65, 0.42, 0]} rotation={[0.1, 0, -0.35]}>
+        <mesh position={[0, 0.10, 0]} rotation={[-0.05, 0, 0]} castShadow receiveShadow>
+          <cylinderGeometry args={[0.16, 0.18, 0.5, 32]} />
+          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+        </mesh>
+        <mesh position={[-0.02, -0.25, 0.08]} rotation={[-0.15, 0, 0]} castShadow receiveShadow>
+          <cylinderGeometry args={[0.15, 0.14, 0.4, 32]} />
+          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+        </mesh>
+        <mesh position={[-0.04, -0.50, 0.18]} rotation={[-0.25, 0, 0]} castShadow receiveShadow>
+          <cylinderGeometry args={[0.14, 0.13, 0.35, 32]} />
+          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+        </mesh>
+        <group position={[-0.05, -0.70, 0.28]} rotation={[-0.25, 0, 0]}>
+          <mesh castShadow receiveShadow>
+            <cylinderGeometry args={[0.135, 0.135, 0.10, 32]} />
+            <meshPhysicalMaterial color={color} roughness={0.92} sheen={0.4} clearcoat={0.05} />
+          </mesh>
+          <mesh position={[0, 0.035, 0]}>
+            <torusGeometry args={[0.135, 0.008, 12, 32]} />
+            <meshStandardMaterial color={color} roughness={0.95} />
+          </mesh>
+          <mesh position={[0, -0.035, 0]}>
+            <torusGeometry args={[0.135, 0.008, 12, 32]} />
+            <meshStandardMaterial color={color} roughness={0.95} />
+          </mesh>
+        </group>
+      </group>
+
+      {/* Hood - Realistic volume with clear opening */}
+      <group position={[0, 0.75, -0.12]}>
+        {/* Main hood volume - fuller shape */}
+        <mesh position={[0, 0.05, -0.02]} rotation={[0.25, 0, 0]} castShadow receiveShadow>
+          <sphereGeometry args={[0.44, 48, 32, 0, Math.PI * 2, 0, Math.PI / 1.65]} />
+          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+        </mesh>
+        {/* Hood back - extends behind neck */}
+        <mesh position={[0, 0.08, -0.28]} rotation={[0.5, 0, 0]} castShadow receiveShadow>
+          <sphereGeometry args={[0.32, 40, 24, 0, Math.PI * 2, 0, Math.PI * 0.4]} />
+          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+        </mesh>
+        {/* Hood opening edge - more pronounced */}
+        <mesh position={[0, -0.12, 0.35]} rotation={[0.50, 0, 0]}>
+          <torusGeometry args={[0.32, 0.025, 20, 48, Math.PI * 0.80]} />
+          <meshPhysicalMaterial color={color} roughness={0.88} metalness={0.02} sheen={0.4} />
+        </mesh>
+        {/* Drawstring tunnel eyelets */}
+        <mesh position={[-0.12, -0.05, 0.40]} rotation={[0.55, 0, 0]}>
+          <cylinderGeometry args={[0.018, 0.018, 0.10, 12]} />
+          <meshStandardMaterial color={color} roughness={0.90} />
+        </mesh>
+        <mesh position={[0.12, -0.05, 0.40]} rotation={[0.55, 0, 0]}>
+          <cylinderGeometry args={[0.018, 0.018, 0.10, 12]} />
+          <meshStandardMaterial color={color} roughness={0.90} />
         </mesh>
       </group>
-      {/* Right Sleeve */}
-      <group position={[0.68, 0.25, 0]} rotation={[0, 0, -Math.PI / 2.4]}>
-        <mesh position={[0, 0.15, 0]} castShadow receiveShadow>
-          <cylinderGeometry args={[0.15, 0.20, 0.6, 32]} />
+
+      {/* Drawstrings hanging down */}
+      <mesh position={[-0.10, 0.52, 0.35]} rotation={[0.15, 0, 0]}>
+        <cylinderGeometry args={[0.010, 0.010, 0.35, 8]} />
+        <meshStandardMaterial color="#2a2a2a" roughness={0.75} />
+      </mesh>
+      <mesh position={[0.10, 0.52, 0.35]} rotation={[0.15, 0, 0]}>
+        <cylinderGeometry args={[0.010, 0.010, 0.35, 8]} />
+        <meshStandardMaterial color="#2a2a2a" roughness={0.75} />
+      </mesh>
+      {/* Drawstring tips (aglets) */}
+      <mesh position={[-0.10, 0.36, 0.38]}>
+        <cylinderGeometry args={[0.012, 0.008, 0.025, 8]} />
+        <meshStandardMaterial color="#1a1a1a" roughness={0.6} metalness={0.3} />
+      </mesh>
+      <mesh position={[0.10, 0.36, 0.38]}>
+        <cylinderGeometry args={[0.012, 0.008, 0.025, 8]} />
+        <meshStandardMaterial color="#1a1a1a" roughness={0.6} metalness={0.3} />
+      </mesh>
+
+      {/* Kangaroo Pocket - More organic shape */}
+      <group position={[0, -0.05, 0.48]}>
+        {/* Main pocket body */}
+        <mesh rotation={[-0.08, 0, 0]} castShadow>
+          <boxGeometry args={[0.54, 0.35, 0.14]} />
           <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
         </mesh>
-        <mesh position={[0, -0.35, 0]} castShadow receiveShadow>
-          <cylinderGeometry args={[0.13, 0.15, 0.7, 32]} />
-          <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
+        {/* Pocket opening (dark interior) */}
+        <mesh position={[0, 0.15, 0.06]} rotation={[-0.2, 0, 0]}>
+          <boxGeometry args={[0.50, 0.025, 0.10]} />
+          <meshBasicMaterial color="#0a0a0a" />
         </mesh>
-        {/* Cuff */}
-        <mesh position={[0, -0.72, 0]} castShadow receiveShadow>
-          <cylinderGeometry args={[0.14, 0.14, 0.08, 32]} />
-          <meshPhysicalMaterial color={color} roughness={0.95} sheen={0.3} />
+        {/* Pocket bottom seam */}
+        <mesh position={[0, -0.175, 0.02]} rotation={[0, 0, 0]}>
+          <boxGeometry args={[0.52, 0.008, 0.12]} />
+          <meshStandardMaterial color={color} roughness={0.98} />
         </mesh>
       </group>
-      {/* Hood - More detailed */}
-      <mesh position={[0, 0.70, -0.18]} rotation={[0.35, 0, 0]} castShadow receiveShadow>
-         <sphereGeometry args={[0.40, 40, 20, 0, Math.PI * 2, 0, Math.PI/1.8]} />
-         <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
-      </mesh>
-      {/* Hood opening trim */}
-      <mesh position={[0, 0.58, 0.28]} rotation={[0.5, 0, 0]}>
-         <torusGeometry args={[0.28, 0.02, 16, 32, Math.PI]} />
-         <meshPhysicalMaterial color={color} roughness={0.95} />
-      </mesh>
-      {/* Drawstrings */}
-      <mesh position={[-0.08, 0.52, 0.35]} rotation={[0, 0, 0]}>
-        <cylinderGeometry args={[0.012, 0.012, 0.4, 8]} />
-        <meshStandardMaterial color="#333333" roughness={0.7} />
-      </mesh>
-      <mesh position={[0.08, 0.52, 0.35]} rotation={[0, 0, 0]}>
-        <cylinderGeometry args={[0.012, 0.012, 0.4, 8]} />
-        <meshStandardMaterial color="#333333" roughness={0.7} />
-      </mesh>
-      {/* Kangaroo Pocket */}
-      <mesh position={[0, -0.2, 0.50]} rotation={[0, 0, 0]} castShadow>
-         <boxGeometry args={[0.52, 0.32, 0.12]} />
-         <BaseMaterial color={color} textureUrl={textureUrl} textureScale={textureScale} />
-      </mesh>
-      {/* Pocket opening (top edge) */}
-      <mesh position={[0, -0.05, 0.54]} rotation={[-0.15, 0, 0]}>
-         <boxGeometry args={[0.48, 0.02, 0.08]} />
-         <meshBasicMaterial color="#0a0a0a" />
-      </mesh>
-      {/* Bottom hem */}
-      <mesh position={[0, -0.96, 0]} castShadow receiveShadow>
-        <cylinderGeometry args={[0.54, 0.54, 0.08, 48]} />
-        <meshPhysicalMaterial color={color} roughness={0.95} sheen={0.2} />
-      </mesh>
+
+      {/* Bottom hem - Ribbed waistband with thickness */}
+      <group position={[0, -0.72, 0]}>
+        {/* Main rib band */}
+        <mesh castShadow receiveShadow>
+          <cylinderGeometry args={[0.49, 0.49, 0.12, 48]} />
+          <meshPhysicalMaterial color={color} roughness={0.90} sheen={0.35} clearcoat={0.08} />
+        </mesh>
+        {/* Rib detail grooves */}
+        <mesh position={[0, 0.045, 0]}>
+          <torusGeometry args={[0.49, 0.010, 16, 48]} />
+          <meshStandardMaterial color={color} roughness={0.94} />
+        </mesh>
+        <mesh position={[0, 0.015, 0]}>
+          <torusGeometry args={[0.49, 0.010, 16, 48]} />
+          <meshStandardMaterial color={color} roughness={0.94} />
+        </mesh>
+        <mesh position={[0, -0.015, 0]}>
+          <torusGeometry args={[0.49, 0.010, 16, 48]} />
+          <meshStandardMaterial color={color} roughness={0.94} />
+        </mesh>
+        <mesh position={[0, -0.045, 0]}>
+          <torusGeometry args={[0.49, 0.010, 16, 48]} />
+          <meshStandardMaterial color={color} roughness={0.94} />
+        </mesh>
+      </group>
     </group>
   );
 };
@@ -531,7 +632,7 @@ const ThreeDViewer = forwardRef(function ThreeDViewer(
   };
 
   return (
-    <div className="w-full h-full bg-gradient-to-b from-gray-100 to-gray-200 rounded-lg overflow-hidden relative shadow-inner">
+    <div className="w-full h-full rounded-lg overflow-hidden relative shadow-inner" style={{ background: 'linear-gradient(135deg, #0b1120 0%, #1a1f35 50%, #0f1419 100%)' }}>
       <div className="absolute top-4 left-4 z-10 flex flex-col items-start gap-1 pointer-events-none">
         <div className="bg-white/80 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium text-gray-700 shadow-sm border border-gray-100">
           Model: {customModelUrl ? 'Custom Upload' : garmentType}
@@ -551,11 +652,10 @@ const ThreeDViewer = forwardRef(function ThreeDViewer(
           alpha: false,
           powerPreference: 'high-performance',
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.2,
+          toneMappingExposure: 1.1,
           outputEncoding: 3001
         }}
-        style={{ background: 'linear-gradient(to bottom, #e5e7eb 0%, #f3f4f6 100%)' }}
-        camera={{ position: [0, 0.2, 4.2], fov: 42 }}
+        camera={{ position: [1.8, 0.5, 3.5], fov: 42 }}
         onCreated={({ gl }) => {
            // Attach the canvas element to the forwarded ref
            if (typeof ref === 'function') {
@@ -564,6 +664,7 @@ const ThreeDViewer = forwardRef(function ThreeDViewer(
              ref.current = gl.domElement;
            }
         }}
+        style={{ background: 'linear-gradient(135deg, #0b1120 0%, #1e293b 50%, #0f172a 100%)' }}
       >
         <React.Suspense fallback={null}>
           {/* Lighting Setup - Professional studio lighting */}
@@ -626,12 +727,15 @@ const ThreeDViewer = forwardRef(function ThreeDViewer(
         {/* Controls */}
         <OrbitControls 
           autoRotate={autoRotate ?? false} 
-          autoRotateSpeed={2}
+          autoRotateSpeed={1.8}
           makeDefault 
-          minPolarAngle={0} 
-          maxPolarAngle={Math.PI / 1.5}
+          minPolarAngle={Math.PI / 6}
+          maxPolarAngle={Math.PI / 1.8}
+          minDistance={2.5}
+          maxDistance={6}
           enableDamping
-          dampingFactor={0.05}
+          dampingFactor={0.08}
+          enablePan={false}
         />
       </Canvas>
       
