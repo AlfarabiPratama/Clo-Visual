@@ -54,7 +54,8 @@ const CustomGLBModel: React.FC<{ url: string; color: string; textureUrl: string 
   const { scene } = useGLTF(url);
   const clone = React.useMemo(() => scene.clone(), [scene]);
   
-  const texture = useLoader(THREE.TextureLoader, textureUrl || "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7");
+  // Only load texture if textureUrl is provided
+  const texture = textureUrl ? useTexture(textureUrl) : null;
   
   useLayoutEffect(() => {
     if (textureUrl && texture) {
@@ -69,7 +70,7 @@ const CustomGLBModel: React.FC<{ url: string; color: string; textureUrl: string 
         // Clone material to avoid affecting other instances
         child.material = child.material.clone();
         
-        if (textureUrl && texture && texture.image.width > 1) {
+        if (textureUrl && texture) {
           child.material.map = texture;
           child.material.color = new THREE.Color(0xffffff);
         } else {
@@ -77,9 +78,10 @@ const CustomGLBModel: React.FC<{ url: string; color: string; textureUrl: string 
           child.material.color = new THREE.Color(color);
         }
         
-        // PBR enhancements
-        child.material.roughness = 0.7;
-        child.material.metalness = 0.1;
+        // PBR enhancements for realistic fabric
+        child.material.roughness = 0.72;
+        child.material.metalness = 0.03;
+        child.material.sheen = 0.60;
         child.castShadow = true;
         child.receiveShadow = true;
         child.material.needsUpdate = true;
