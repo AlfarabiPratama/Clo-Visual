@@ -18,7 +18,13 @@ interface ThreeDViewerProps {
   customModelUrl?: string | null;
   autoRotate?: boolean;
   onLoadComplete?: () => void;
+  viewMode?: 'stylized' | 'realistic';
+  wireframe?: boolean;
+  cameraPreset?: 'front' | 'three-quarter' | 'back';
 }
+
+// Default GLB model paths
+const DEFAULT_HOODIE_URL = '/models/hoodie.glb';
 
 // --- ERROR BOUNDARY ---
 interface TextureErrorBoundaryProps {
@@ -170,31 +176,33 @@ const TexturedMaterial: React.FC<{ url: string; color: string; scale: number }> 
     <meshPhysicalMaterial 
       color={color} 
       map={texture} 
-      roughness={0.72}
-      metalness={0.03}
-      sheen={0.60}
+      roughness={0.8}
+      metalness={0.0}
+      sheen={0.4}
       sheenColor={new THREE.Color(0xffffff)}
-      sheenRoughness={0.68}
-      clearcoat={0.04}
-      clearcoatRoughness={0.82}
+      sheenRoughness={0.7}
+      clearcoat={0.02}
+      clearcoatRoughness={0.9}
+      wireframe={false}
     />
   );
 };
 
-const BaseMaterial: React.FC<{ color: string; textureUrl: string | null; textureScale: number }> = ({ color, textureUrl, textureScale }) => {
+const BaseMaterial: React.FC<{ color: string; textureUrl: string | null; textureScale: number; wireframe?: boolean }> = ({ color, textureUrl, textureScale, wireframe = false }) => {
   const fallbackMaterial = (
     <meshPhysicalMaterial 
       color={color} 
-      roughness={0.75}
+      roughness={0.8}
       metalness={0.02}
-      sheen={0.65}
+      sheen={0.5}
       sheenColor={new THREE.Color(0xffffff)}
-      sheenRoughness={0.65}
-      clearcoat={0.06}
-      clearcoatRoughness={0.80}
+      sheenRoughness={0.7}
+      clearcoat={0.02}
+      clearcoatRoughness={0.9}
       flatShading={false}
       envMapIntensity={0.5}
       reflectivity={0.08}
+      wireframe={wireframe}
     />
   );
 
@@ -640,7 +648,7 @@ const ProceduralDress: React.FC<{ color: string; textureUrl: string | null; fit:
 // --- MAIN COMPONENT ---
 // Forward ref used to expose the canvas element for screenshotting
 const ThreeDViewer = forwardRef(function ThreeDViewer(
-  { color, textureUrl, garmentType, fit, textureScale, customModelUrl, autoRotate, onLoadComplete }: ThreeDViewerProps,
+  { color, textureUrl, garmentType, fit, textureScale, customModelUrl, autoRotate, onLoadComplete, viewMode = 'stylized', wireframe = false, cameraPreset = 'three-quarter' }: ThreeDViewerProps,
   ref: React.ForwardedRef<HTMLCanvasElement>
 ) {
   // Notify parent that viewer is ready after mount
@@ -659,14 +667,20 @@ const ThreeDViewer = forwardRef(function ThreeDViewer(
       textureUrl,
       fit,
       textureScale,
-      customModelUrl
+      customModelUrl,
+      viewMode,
+      wireframe
     });
 
-    if (customModelUrl) {
+    // Determine effective custom URL (user upload or default GLB)
+    const effectiveCustomUrl = customModelUrl || 
+      (viewMode === 'realistic' && garmentType === GarmentType.HOODIE ? DEFAULT_HOODIE_URL : null);
+
+    if (effectiveCustomUrl) {
       return (
         <React.Suspense fallback={null}>
           <CustomGLBModel 
-            url={customModelUrl} 
+            url={effectiveCustomUrl} 
             color={color} 
             textureUrl={textureUrl}
             textureScale={textureScale} 
@@ -675,6 +689,7 @@ const ThreeDViewer = forwardRef(function ThreeDViewer(
       );
     }
 
+    // Fallback to procedural models (stylized)
     switch (garmentType) {
       case GarmentType.HOODIE:
         return <ProceduralHoodie color={color} textureUrl={textureUrl} fit={fit} textureScale={textureScale} />;
@@ -711,7 +726,7 @@ const ThreeDViewer = forwardRef(function ThreeDViewer(
           toneMappingExposure: 1.1,
           outputEncoding: 3001
         }}
-        camera={{ position: [1.8, 0.5, 3.5], fov: 42 }}
+        camera={{ position: [1.8, 1.0, 3.5], fov: 42 }}
         onCreated={({ gl }) => {
            // Attach the canvas element to the forwarded ref
            if (typeof ref === 'function') {
@@ -726,13 +741,13 @@ const ThreeDViewer = forwardRef(function ThreeDViewer(
           {/* Lighting Setup - Professional studio lighting */}
           <ambientLight intensity={0.35} color="#f0f0f5" />
           
-          {/* Key light - main illumination */}
+          {/* Key light - main illumination (optimized for mobile) */}
           <directionalLight 
             position={[5, 8, 5]} 
             intensity={1.4} 
             castShadow
-            shadow-mapSize-width={2048}
-            shadow-mapSize-height={2048}
+            shadow-mapSize-width={1024}
+            shadow-mapSize-height={1024}
             shadow-camera-far={15}
             shadow-camera-left={-3}
             shadow-camera-right={3}
