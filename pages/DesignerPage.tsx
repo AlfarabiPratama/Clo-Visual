@@ -507,79 +507,76 @@ const DesignerPage: React.FC = () => {
           {/* Main: 3D Viewer */}
           <div className="flex-1 min-h-0 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative">
             
-            {/* Quick Actions Toolbar */}
-            <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
-              {/* Top Row - View Mode & Auto Rotate */}
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setViewMode(viewMode === 'stylized' ? 'realistic' : 'stylized')}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all shadow-lg backdrop-blur-md ${
-                    viewMode === 'realistic'
-                      ? 'bg-blue-600 text-white' 
-                      : 'bg-white/90 text-gray-700 hover:bg-white'
-                  }`}
-                  title={`Switch to ${viewMode === 'stylized' ? 'Realistic' : 'Stylized'} Mode`}
-                >
-                  <div className="flex items-center gap-2">
-                    <Box className="w-4 h-4" />
-                    {viewMode === 'realistic' ? 'Realistic' : 'Stylized'}
-                  </div>
-                </button>
-                
-                <button
-                  onClick={() => setAutoRotate(!autoRotate)}
-                  className={`px-3 py-2 rounded-lg text-sm font-medium transition-all shadow-lg backdrop-blur-md ${
-                    autoRotate 
-                      ? 'bg-slate-600 text-white' 
-                      : 'bg-white/90 text-gray-700 hover:bg-white'
-                  }`}
-                  title="Toggle Auto Rotate"
-                >
-                  <div className="flex items-center gap-2">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    {autoRotate ? 'On' : 'Off'}
-                  </div>
-                </button>
-              </div>
+            {/* View Mode Controls - Top Left */}
+            <div className="absolute top-4 left-4 z-10 flex gap-2">
+              <button
+                onClick={() => setViewMode(viewMode === 'stylized' ? 'realistic' : 'stylized')}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all shadow-lg backdrop-blur-md ${
+                  viewMode === 'realistic'
+                    ? 'bg-blue-600 text-white' 
+                    : 'bg-white/90 text-gray-700 hover:bg-white'
+                }`}
+                title={`Switch to ${viewMode === 'stylized' ? 'Realistic' : 'Stylized'} Mode`}
+              >
+                <div className="flex items-center gap-2">
+                  <Box className="w-4 h-4" />
+                  {viewMode === 'realistic' ? 'Realistic' : 'Stylized'}
+                </div>
+              </button>
               
-              {/* Bottom Row - Camera Presets */}
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setCameraPreset('front')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all shadow-md backdrop-blur-md ${
-                    cameraPreset === 'front'
-                      ? 'bg-slate-600 text-white' 
-                      : 'bg-white/80 text-gray-600 hover:bg-white'
-                  }`}
-                  title="Front View"
-                >
-                  Front
-                </button>
-                <button
-                  onClick={() => setCameraPreset('three-quarter')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all shadow-md backdrop-blur-md ${
-                    cameraPreset === 'three-quarter'
-                      ? 'bg-slate-600 text-white' 
-                      : 'bg-white/80 text-gray-600 hover:bg-white'
-                  }`}
-                  title="3/4 View"
-                >
-                  3/4
-                </button>
-                <button
-                  onClick={() => setCameraPreset('back')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all shadow-md backdrop-blur-md ${
-                    cameraPreset === 'back'
-                      ? 'bg-slate-600 text-white' 
-                      : 'bg-white/80 text-gray-600 hover:bg-white'
-                  }`}
-                  title="Back View"
-                >
-                  Back
-                </button>
-              </div>
+              <button
+                onClick={() => setAutoRotate(!autoRotate)}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all shadow-lg backdrop-blur-md ${
+                  autoRotate 
+                    ? 'bg-slate-600 text-white' 
+                    : 'bg-white/90 text-gray-700 hover:bg-white'
+                }`}
+                title="Toggle Auto Rotate"
+              >
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  {autoRotate ? 'On' : 'Off'}
+                </div>
+              </button>
+            </div>
+            
+            {/* Camera Presets - Bottom Center */}
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10 flex gap-2 bg-white/90 backdrop-blur-md rounded-lg p-2 shadow-lg">
+              <button
+                onClick={() => setCameraPreset('front')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  cameraPreset === 'front'
+                    ? 'bg-slate-600 text-white shadow-md' 
+                    : 'bg-transparent text-gray-700 hover:bg-gray-100'
+                }`}
+                title="Front View"
+              >
+                Front
+              </button>
+              <button
+                onClick={() => setCameraPreset('three-quarter')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  cameraPreset === 'three-quarter'
+                    ? 'bg-slate-600 text-white shadow-md' 
+                    : 'bg-transparent text-gray-700 hover:bg-gray-100'
+                }`}
+                title="3/4 View"
+              >
+                3/4
+              </button>
+              <button
+                onClick={() => setCameraPreset('back')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                  cameraPreset === 'back'
+                    ? 'bg-slate-600 text-white shadow-md' 
+                    : 'bg-transparent text-gray-700 hover:bg-gray-100'
+                }`}
+                title="Back View"
+              >
+                Back
+              </button>
             </div>
 
             {/* Loading Overlay */}
