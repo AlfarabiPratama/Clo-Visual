@@ -70,6 +70,9 @@ const DesignerPage: React.FC = () => {
   // Color Palette State
   const [colorPalette, setColorPalette] = useState<ColorPaletteResult | null>(null);
   const [isPaletteGenerating, setIsPaletteGenerating] = useState(false);
+  
+  // Mobile Sidebar State
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // Ref for the 3D Canvas (for export)
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -339,9 +342,19 @@ const DesignerPage: React.FC = () => {
   return (
     <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-gray-100">
       
+      {/* Mobile Sidebar Toggle (visible on mobile only) */}
+      <button
+        onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+        className="lg:hidden fixed top-20 left-4 z-30 p-2 bg-slate-600 text-white rounded-md shadow-lg"
+      >
+        <Box className="h-5 w-5" />
+      </button>
+      
       {/* --- Left Sidebar: Controls --- */}
-      <div className="w-80 bg-white border-r border-gray-200 flex flex-col overflow-y-auto">
-        <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+      <div className={`${
+        isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      } lg:translate-x-0 fixed lg:relative w-72 sm:w-80 bg-white border-r border-gray-200 flex flex-col overflow-y-auto transition-transform duration-300 z-20 h-full`}>
+        <div className="p-3 sm:p-4 border-b border-gray-200 flex justify-between items-center">
           <h2 className="text-lg font-semibold text-gray-800">Designer Tools</h2>
           <div className="flex gap-1">
             <button 

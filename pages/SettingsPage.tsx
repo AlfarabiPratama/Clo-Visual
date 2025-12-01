@@ -39,17 +39,17 @@ const SettingsPage: React.FC = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-4 sm:py-6 md:py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Pengaturan</h1>
-          <p className="mt-2 text-gray-600">Kelola akun dan preferensi Anda</p>
+        <div className="mb-4 sm:mb-6 md:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Pengaturan</h1>
+          <p className="mt-1 sm:mt-2 text-sm sm:text-base text-gray-600">Kelola akun dan preferensi Anda</p>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm overflow-hidden">
           {/* Tabs */}
-          <div className="border-b border-gray-200">
-            <nav className="flex -mb-px">
+          <div className="border-b border-gray-200 overflow-x-auto">
+            <nav className="flex -mb-px min-w-max sm:min-w-0">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
@@ -57,15 +57,15 @@ const SettingsPage: React.FC = () => {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={`
-                      flex items-center px-6 py-4 text-sm font-medium border-b-2 transition-colors
+                      flex items-center px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap
                       ${activeTab === tab.id
                         ? 'border-slate-600 text-slate-600'
                         : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                       }
                     `}
                   >
-                    <Icon className="h-5 w-5 mr-2" />
-                    {tab.name}
+                    <Icon className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2" />
+                    <span className="hidden xs:inline">{tab.name}</span>
                   </button>
                 );
               })}
@@ -73,23 +73,23 @@ const SettingsPage: React.FC = () => {
           </div>
 
           {/* Tab Content */}
-          <div className="p-6">
+          <div className="p-4 sm:p-6">
             {/* Profile Tab */}
             {activeTab === 'profile' && (
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Informasi Profil</h3>
+                  <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">Informasi Profil</h3>
                   
-                  <div className="space-y-4">
+                  <div className="space-y-3 sm:space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Foto Profil
                       </label>
-                      <div className="flex items-center space-x-4">
-                        <div className="h-20 w-20 rounded-full bg-slate-600 flex items-center justify-center text-white text-2xl font-bold">
+                      <div className="flex items-center space-x-3 sm:space-x-4">
+                        <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-slate-600 flex items-center justify-center text-white text-xl sm:text-2xl font-bold">
                           {displayName.charAt(0).toUpperCase()}
                         </div>
-                        <button className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        <button className="px-3 sm:px-4 py-2 border border-gray-300 rounded-md text-xs sm:text-sm font-medium text-gray-700 hover:bg-gray-50">
                           Ubah Foto
                         </button>
                       </div>
@@ -140,9 +140,9 @@ const SettingsPage: React.FC = () => {
 
             {/* Account Tab */}
             {activeTab === 'account' && (
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Keamanan Akun</h3>
+                  <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">Keamanan Akun</h3>
                   
                   <div className="space-y-4">
                     <div>
@@ -180,47 +180,47 @@ const SettingsPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="pt-6 border-t border-gray-200">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Preferensi</h3>
+                <div className="pt-4 sm:pt-6 border-t border-gray-200">
+                  <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">Preferensi</h3>
                   
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-700">Notifikasi Email</p>
-                        <p className="text-sm text-gray-500">Terima update via email</p>
+                        <p className="text-xs sm:text-sm text-gray-500">Terima update via email</p>
                       </div>
                       <button
                         onClick={() => setEmailNotifications(!emailNotifications)}
                         className={`
-                          relative inline-flex h-6 w-11 items-center rounded-full transition-colors
+                          relative inline-flex h-5 w-10 sm:h-6 sm:w-11 items-center rounded-full transition-colors flex-shrink-0
                           ${emailNotifications ? 'bg-slate-600' : 'bg-gray-200'}
                         `}
                       >
                         <span
                           className={`
-                            inline-block h-4 w-4 transform rounded-full bg-white transition-transform
-                            ${emailNotifications ? 'translate-x-6' : 'translate-x-1'}
+                            inline-block h-3 w-3 sm:h-4 sm:w-4 transform rounded-full bg-white transition-transform
+                            ${emailNotifications ? 'translate-x-5 sm:translate-x-6' : 'translate-x-1'}
                           `}
                         />
                       </button>
                     </div>
 
-                    <div className="flex items-center justify-between">
-                      <div>
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-700">Update Desain</p>
-                        <p className="text-sm text-gray-500">Notifikasi saat desain selesai diproses</p>
+                        <p className="text-xs sm:text-sm text-gray-500">Notifikasi saat desain selesai diproses</p>
                       </div>
                       <button
                         onClick={() => setDesignUpdates(!designUpdates)}
                         className={`
-                          relative inline-flex h-6 w-11 items-center rounded-full transition-colors
+                          relative inline-flex h-5 w-10 sm:h-6 sm:w-11 items-center rounded-full transition-colors flex-shrink-0
                           ${designUpdates ? 'bg-slate-600' : 'bg-gray-200'}
                         `}
                       >
                         <span
                           className={`
-                            inline-block h-4 w-4 transform rounded-full bg-white transition-transform
-                            ${designUpdates ? 'translate-x-6' : 'translate-x-1'}
+                            inline-block h-3 w-3 sm:h-4 sm:w-4 transform rounded-full bg-white transition-transform
+                            ${designUpdates ? 'translate-x-5 sm:translate-x-6' : 'translate-x-1'}
                           `}
                         />
                       </button>
@@ -232,10 +232,10 @@ const SettingsPage: React.FC = () => {
 
             {/* API Keys Tab */}
             {activeTab === 'api' && (
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">API Keys Kustom</h3>
-                  <p className="text-sm text-gray-600 mb-6">
+                  <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">API Keys Kustom</h3>
+                  <p className="text-xs sm:text-sm text-gray-600 mb-4 sm:mb-6">
                     Gunakan API key Anda sendiri untuk akses unlimited. Kosongkan untuk menggunakan API key sistem (dengan limitasi).
                   </p>
                   
@@ -289,10 +289,10 @@ const SettingsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
+                  <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-blue-50 border border-blue-200 rounded-md">
                     <div className="flex items-start">
-                      <Bell className="h-5 w-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
-                      <div className="text-sm text-blue-800">
+                      <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 mt-0.5 mr-2 sm:mr-3 flex-shrink-0" />
+                      <div className="text-xs sm:text-sm text-blue-800">
                         <p className="font-medium mb-1">Keamanan API Key</p>
                         <p>API key Anda disimpan secara lokal di browser dan tidak pernah dikirim ke server kami. Kami hanya menggunakan API key untuk mengirim request ke provider AI yang Anda pilih.</p>
                       </div>
@@ -304,21 +304,21 @@ const SettingsPage: React.FC = () => {
 
             {/* Billing Tab */}
             {activeTab === 'billing' && (
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Paket Saat Ini</h3>
+                  <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">Paket Saat Ini</h3>
                   
-                  <div className="border border-gray-200 rounded-lg p-6 bg-gradient-to-br from-slate-50 to-gray-50">
-                    <div className="flex items-center justify-between mb-4">
+                  <div className="border border-gray-200 rounded-lg p-4 sm:p-5 md:p-6 bg-gradient-to-br from-slate-50 to-gray-50">
+                    <div className="flex items-center justify-between mb-3 sm:mb-4 flex-wrap gap-2">
                       <div>
-                        <h4 className="text-xl font-bold text-gray-900">Free Plan</h4>
-                        <p className="text-gray-600">10 desain per bulan</p>
+                        <h4 className="text-lg sm:text-xl font-bold text-gray-900">Free Plan</h4>
+                        <p className="text-sm sm:text-base text-gray-600">10 desain per bulan</p>
                       </div>
-                      <div className="text-3xl font-bold text-slate-600">$0</div>
+                      <div className="text-2xl sm:text-3xl font-bold text-slate-600">$0</div>
                     </div>
                     
-                    <div className="space-y-2 mb-6">
-                      <div className="flex items-center text-sm text-gray-600">
+                    <div className="space-y-1.5 sm:space-y-2 mb-4 sm:mb-6">
+                      <div className="flex items-center text-xs sm:text-sm text-gray-600">
                         <span className="text-green-600 mr-2">✓</span>
                         Text-to-Design AI
                       </div>
@@ -338,31 +338,31 @@ const SettingsPage: React.FC = () => {
 
                     <a
                       href="#/pricing"
-                      className="block w-full text-center px-6 py-3 bg-slate-600 text-white rounded-md font-medium hover:bg-slate-700 transition-colors"
+                      className="block w-full text-center px-4 sm:px-6 py-2.5 sm:py-3 bg-slate-600 text-white rounded-md text-sm sm:text-base font-medium hover:bg-slate-700 transition-colors"
                     >
                       Upgrade ke Pro
                     </a>
                   </div>
                 </div>
 
-                <div className="pt-6 border-t border-gray-200">
-                  <h3 className="text-lg font-medium text-gray-900 mb-4">Riwayat Pembayaran</h3>
-                  <p className="text-sm text-gray-500">Belum ada riwayat pembayaran</p>
+                <div className="pt-4 sm:pt-6 border-t border-gray-200">
+                  <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">Riwayat Pembayaran</h3>
+                  <p className="text-xs sm:text-sm text-gray-500">Belum ada riwayat pembayaran</p>
                 </div>
               </div>
             )}
 
             {/* Save Button */}
-            <div className="mt-8 pt-6 border-t border-gray-200 flex justify-end">
+            <div className="mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200 flex justify-end">
               <button
                 onClick={handleSave}
                 disabled={isSaving}
                 className={`
-                  flex items-center px-6 py-3 rounded-md font-medium text-white transition-colors
+                  flex items-center px-4 sm:px-6 py-2.5 sm:py-3 rounded-md text-sm sm:text-base font-medium text-white transition-colors w-full sm:w-auto justify-center
                   ${isSaving ? 'bg-gray-400 cursor-not-allowed' : 'bg-slate-600 hover:bg-slate-700'}
                 `}
               >
-                <Save className="h-5 w-5 mr-2" />
+                <Save className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                 {isSaving ? 'Menyimpan...' : 'Simpan Perubahan'}
               </button>
             </div>
