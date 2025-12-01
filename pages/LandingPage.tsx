@@ -48,6 +48,30 @@ const LandingPage: React.FC = () => {
         </div>
       </header>
 
+      {/* Stats Section */}
+      <section className="bg-slate-700 py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+            <div className="text-center">
+              <div className="text-4xl font-bold text-white">500+</div>
+              <div className="mt-2 text-sm text-slate-300">Desainer Aktif</div>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl font-bold text-white">10K+</div>
+              <div className="mt-2 text-sm text-slate-300">Desain Dibuat</div>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl font-bold text-white">98%</div>
+              <div className="mt-2 text-sm text-slate-300">Kepuasan User</div>
+            </div>
+            <div className="text-center">
+              <div className="text-4xl font-bold text-white">50%</div>
+              <div className="mt-2 text-sm text-slate-300">Hemat Waktu</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Target Audience Section */}
       <section className="py-12 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -125,23 +149,162 @@ const LandingPage: React.FC = () => {
         </div>
       </section>
 
+      {/* How It Works Section */}
+      <section className="py-12 bg-gradient-to-br from-slate-50 to-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h2 className="text-base text-slate-600 font-semibold tracking-wide uppercase">Cara Kerja</h2>
+            <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+              Dari Ide ke Desain 3D dalam 3 Langkah
+            </p>
+          </div>
+
+          <div className="mt-12">
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+              <div className="relative text-center">
+                <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-slate-600 text-white text-2xl font-bold mb-4">
+                  1
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Input Ide Anda</h3>
+                <p className="text-gray-600">
+                  Ketik deskripsi desain atau upload foto sketsa tangan Anda
+                </p>
+              </div>
+              
+              <div className="relative text-center">
+                <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-slate-600 text-white text-2xl font-bold mb-4">
+                  2
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">AI Memproses</h3>
+                <p className="text-gray-600">
+                  Sistem AI kami menganalisis dan menghasilkan desain 3D
+                </p>
+              </div>
+              
+              <div className="relative text-center">
+                <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-slate-600 text-white text-2xl font-bold mb-4">
+                  3
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Preview &amp; Ekspor</h3>
+                <p className="text-gray-600">
+                  Putar 360°, edit warna, dan ekspor sebagai PNG atau file 3D
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-12 text-center">
+            <Link to="/projects" className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-slate-600 hover:bg-slate-700 shadow-lg hover:shadow-xl transition-all">
+              Mulai Desain Gratis <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
       {/* Testimonials */}
       <section className="bg-slate-50 py-12 border-t border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-white p-6 rounded-xl shadow-sm italic text-gray-600">
-              "Clo Vsual memangkas waktu sampling saya hingga 50%. Luar biasa untuk presentasi ke klien."
+              &quot;Clo Vsual memangkas waktu sampling saya hingga 50%. Luar biasa untuk presentasi ke klien.&quot;
               <div className="mt-4 font-bold text-gray-900 not-italic">— Sarah, Desainer Muda</div>
             </div>
             <div className="bg-white p-6 rounded-xl shadow-sm italic text-gray-600">
-              "Sangat membantu UMKM seperti kami yang punya budget terbatas untuk photoshoot."
+              &quot;Sangat membantu UMKM seperti kami yang punya budget terbatas untuk photoshoot.&quot;
               <div className="mt-4 font-bold text-gray-900 not-italic">— Budi, Pemilik Brand Lokal</div>
             </div>
             <div className="bg-white p-6 rounded-xl shadow-sm italic text-gray-600">
-              "Alat yang bagus untuk mengajarkan konsep desain digital kepada mahasiswa."
+              &quot;Alat yang bagus untuk mengajarkan konsep desain digital kepada mahasiswa.&quot;
               <div className="mt-4 font-bold text-gray-900 not-italic">— Ibu Ratna, Dosen Mode</div>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="py-12 bg-white">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-base text-slate-600 font-semibold tracking-wide uppercase">FAQ</h2>
+            <p className="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-gray-900 sm:text-4xl">
+              Pertanyaan yang Sering Diajukan
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            <div className="bg-gray-50 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-start">
+                <CheckCircle2 className="h-5 w-5 text-slate-600 mr-2 mt-1 shrink-0" />
+                Apakah saya perlu skill 3D modeling?
+              </h3>
+              <p className="text-gray-600 ml-7">
+                Tidak sama sekali! Cukup jelaskan ide Anda dengan kata-kata atau sketsa sederhana, AI akan handle sisanya.
+              </p>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-start">
+                <CheckCircle2 className="h-5 w-5 text-slate-600 mr-2 mt-1 shrink-0" />
+                Berapa lama proses generate desain?
+              </h3>
+              <p className="text-gray-600 ml-7">
+                Rata-rata 10-30 detik untuk text-to-design dan 20-60 detik untuk sketch-to-3D.
+              </p>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-start">
+                <CheckCircle2 className="h-5 w-5 text-slate-600 mr-2 mt-1 shrink-0" />
+                Apakah hasil desain bisa diedit manual?
+              </h3>
+              <p className="text-gray-600 ml-7">
+                Ya! Anda bisa ekspor file 3D (.obj) dan edit di software seperti Blender atau CLO 3D.
+              </p>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-start">
+                <CheckCircle2 className="h-5 w-5 text-slate-600 mr-2 mt-1 shrink-0" />
+                Apakah ada paket gratis?
+              </h3>
+              <p className="text-gray-600 ml-7">
+                Ya! Paket Free memberikan 10 desain per bulan. Cocok untuk mahasiswa atau UMKM pemula.
+              </p>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2 flex items-start">
+                <CheckCircle2 className="h-5 w-5 text-slate-600 mr-2 mt-1 shrink-0" />
+                Apakah desain saya aman dan privat?
+              </h3>
+              <p className="text-gray-600 ml-7">
+                Tentu! Semua desain disimpan private di akun Anda. Kami tidak membagikan atau menggunakan desain untuk keperluan lain.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA Section */}
+      <section className="bg-slate-700 py-16">
+        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-extrabold text-white sm:text-4xl">
+            Siap Wujudkan Desain Impian Anda?
+          </h2>
+          <p className="mt-4 text-lg text-slate-300">
+            Bergabunglah dengan ratusan desainer dan UMKM yang sudah mempercepat proses kreatif mereka
+          </p>
+          <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
+            <Link to="/projects" className="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-slate-700 bg-white hover:bg-gray-50 shadow-lg hover:shadow-xl transition-all">
+              Mulai Gratis Sekarang <ArrowRight className="ml-2 h-5 w-5" />
+            </Link>
+            <Link to="/pricing" className="inline-flex items-center justify-center px-8 py-3 border-2 border-white text-base font-medium rounded-md text-white hover:bg-slate-600 transition-all">
+              Lihat Paket Harga
+            </Link>
+          </div>
+          <p className="mt-6 text-sm text-slate-400">
+            ✨ Tidak perlu kartu kredit • 10 desain gratis • Batalkan kapan saja
+          </p>
         </div>
       </section>
     </div>
