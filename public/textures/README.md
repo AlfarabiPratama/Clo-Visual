@@ -7,13 +7,20 @@ Folder ini berisi seamless pattern textures untuk aplikasi Clo Visual.
 Download seamless patterns (512x512px atau 1024x1024px, PNG format) dan simpan di folder ini:
 
 ### Required Textures:
-- `geometric.png` - Pola geometris (shapes, triangles, hexagons)
-- `stripes.png` - Garis-garis horizontal/vertical
+
+**SVG Files (Geometric/Simple Patterns):**
+- `geometric.svg` - Pola geometris (shapes, triangles, hexagons)
+- `stripes.svg` - Garis-garis horizontal/vertical
+
+**PNG Files (Realistic/Photo Textures):**
 - `floral.png` - Pola bunga/botanical
 - `batik.png` - Motif batik Indonesia
 - `denim.png` - Tekstur kain denim/jeans
 - `knit.png` - Tekstur rajutan/jersey knit
 - `cotton.png` - Tekstur kain katun
+
+> **Note**: SVG cocok untuk pattern vector sederhana (geometric, stripes).
+> PNG cocok untuk texture realistis (fabric, denim, floral).
 
 ## Sumber Download Gratis:
 
@@ -42,10 +49,17 @@ Download seamless patterns (512x512px atau 1024x1024px, PNG format) dan simpan d
 
 ## Format Requirements:
 
+### For PNG Files:
 ✅ **Resolution**: 512x512px minimal (1024x1024px optimal)
 ✅ **Format**: PNG dengan transparency (bila perlu)
 ✅ **Seamless**: Pastikan pattern bisa repeat tanpa sambungan terlihat
 ✅ **Color**: Grayscale atau color (warna akan di-tint oleh material Three.js)
+
+### For SVG Files:
+✅ **ViewBox**: Set viewBox="0 0 512 512" atau sesuai pattern size
+✅ **Seamless**: Pattern harus tileable (pakai pattern editor jika perlu)
+✅ **Simple Shapes**: Hindari SVG terlalu kompleks (banyak path/gradients)
+✅ **Color**: Monochrome/simple colors (Three.js akan tint dengan warna user)
 
 ## Tips Memilih Pattern:
 
@@ -57,20 +71,38 @@ Download seamless patterns (512x512px atau 1024x1024px, PNG format) dan simpan d
 6. **Knit**: Jersey knit texture, subtle
 7. **Cotton**: Plain weave texture, very subtle
 
-## Cara Convert SVG ke PNG:
+## SVG vs PNG: Kapan Pakai Apa?
 
-Jika download SVG dari Hero Patterns:
+### Pakai SVG untuk:
+✅ Geometric patterns (Hero Patterns, Pattern Monster)
+✅ Stripes, chevrons, zigzags
+✅ Simple shapes (circles, triangles, hexagons)
+✅ Abstract vector patterns
 
-### Online Tool:
-1. Buka: https://cloudconvert.com/svg-to-png
-2. Upload SVG
-3. Set size: 1024x1024px
-4. Convert & download
+### Pakai PNG untuk:
+✅ Photo-realistic textures (denim weave, cotton fabric)
+✅ Complex organic patterns (floral dengan detail, batik)
+✅ Grainy/noisy textures (fabric grain)
+✅ Jika SVG render tidak sempurna
 
-### Photoshop/GIMP:
-1. Open SVG
-2. Set canvas size: 1024x1024px
-3. Export as PNG
+## Download SVG Langsung (No Conversion Needed):
+
+### Hero Patterns (SVG Native):
+1. Buka: https://heropatterns.com/
+2. Pilih pattern (geometric, stripes, etc.)
+3. Adjust spacing & stroke width
+4. Click "Copy SVG" atau "Download SVG"
+5. Save as `geometric.svg` atau `stripes.svg`
+
+### Pattern Monster:
+1. Buka: https://pattern.monster/
+2. Generate custom geometric pattern
+3. Download SVG
+4. Save ke folder `public/textures/`
+
+### Jika Perlu Convert SVG ke PNG:
+1. Online: https://cloudconvert.com/svg-to-png (set 1024x1024px)
+2. Photoshop/GIMP: Import → Set canvas 1024x1024 → Export PNG
 
 ## Testing:
 

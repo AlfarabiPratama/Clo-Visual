@@ -92,31 +92,35 @@ EXAMPLES:
     // ============================================
     // OPSI A: Map Pattern ke Local Textures
     // ============================================
-    // Path lokal untuk texture files (siap untuk download manual nanti)
-    // Fallback ke picsum untuk sementara kalau file belum ada
+    // Path lokal untuk texture files (support SVG & PNG)
+    // SVG cocok untuk geometric/simple patterns, PNG untuk realistic textures
     const patternMap: Record<string, string | null> = {
-      // Local texture paths (uncomment setelah download textures ke public/textures/)
+      // SVG patterns (geometric, simple shapes - Hero Patterns, Pattern Monster)
+      'geometric': '/textures/geometric.svg',
+      'geometry': '/textures/geometric.svg',
+      'abstract': '/textures/geometric.svg',
+      'stripes': '/textures/stripes.svg',
+      'stripe': '/textures/stripes.svg',
+      'garis': '/textures/stripes.svg',
+      
+      // PNG patterns (realistic textures - photo-based)
       'jersey-knit': '/textures/knit.png',
       'jersey': '/textures/knit.png',
       'knit': '/textures/knit.png',
       'batik-modern': '/textures/batik.png',
       'batik': '/textures/batik.png',
-      'stripes': '/textures/stripes.png',
-      'stripe': '/textures/stripes.png',
-      'garis': '/textures/stripes.png',
       'floral': '/textures/floral.png',
       'flower': '/textures/floral.png',
       'bunga': '/textures/floral.png',
-      'geometric': '/textures/geometric.png',
-      'geometry': '/textures/geometric.png',
-      'abstract': '/textures/geometric.png',
-      'plain': null, // No texture, solid color only
-      'polos': null,
-      'solid': null,
       'denim': '/textures/denim.png',
       'jeans': '/textures/denim.png',
       'cotton': '/textures/cotton.png',
-      'katun': '/textures/cotton.png'
+      'katun': '/textures/cotton.png',
+      
+      // No texture
+      'plain': null,
+      'polos': null,
+      'solid': null
     };
     
     // Flexible pattern matching: try exact match first, then substring match
