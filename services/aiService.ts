@@ -23,6 +23,14 @@ const getActiveProvider = (): AIProvider => {
   return 'mock';
 };
 
+// Special provider for chat assistant (force DeepSeek)
+const getChatProvider = (): AIProvider => {
+  if (DEEPSEEK_API_KEY) return 'deepseek';
+  if (OPENAI_API_KEY) return 'openai';
+  if (GEMINI_API_KEY && geminiAI) return 'gemini';
+  return 'mock';
+};
+
 // Mock data to use if API key is missing or for rapid prototyping
 const MOCK_DESIGN_RESPONSE: AiResponse = {
   suggestedColor: "#FF5733",
@@ -386,12 +394,14 @@ Return JSON format.` },
 };
 
 export const chatWithAiAssistant = async (history: {role: string, content: string}[], newMessage: string): Promise<string> => {
-  const provider = getActiveProvider();
+  const provider = getChatProvider(); // Use DeepSeek-first provider for chat
   
   if (provider === 'mock') {
     await new Promise(resolve => setTimeout(resolve, 1000));
     return "💡 **Mode Demo Aktif**\n\nSaya bisa membantu Anda dengan:\n• Saran warna dan kombinasi palet\n• Rekomendasi jenis kain untuk berbagai gaya\n• Tips desain untuk target pasar tertentu\n• Tren fashion terkini\n\nGunakan panel 'Text to Design' di sebelah kiri untuk membuat desain! Contoh: \"T-shirt cotton putih dengan geometric pattern hitam\"";
   }
+
+  console.log('[Chat Assistant] Using provider:', provider); // Debug log
 
   try {
     // Add timeout for chat requests
