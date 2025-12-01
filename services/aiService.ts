@@ -246,25 +246,75 @@ Return JSON format.` },
 export const chatWithAiAssistant = async (history: {role: string, content: string}[], newMessage: string): Promise<string> => {
   if (!apiKey || !ai) {
     await new Promise(resolve => setTimeout(resolve, 1000));
-    return "Halo! Saya adalah asisten desain Clo Vsual (Mode Demo). Saya bisa memberikan saran tentang tren warna, kain, dan gaya untuk proyek fashion Anda.";
+    return "💡 **Mode Demo Aktif**\n\nSaya bisa membantu Anda dengan:\n• Saran warna dan kombinasi palet\n• Rekomendasi jenis kain untuk berbagai gaya\n• Tips desain untuk target pasar tertentu\n• Tren fashion terkini\n\nGunakan panel 'Text to Design' di sebelah kiri untuk membuat desain! Contoh: \"T-shirt cotton putih dengan geometric pattern hitam\"";
   }
 
   try {
-    const chat = ai.chats.create({
+    // Add timeout for chat requests
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Chat request timeout')), 15000)
+    );
+
+    const systemPrompt = `Anda adalah asisten desain fashion untuk Clo Visual - aplikasi desain 3D garment berbasis AI.
+
+IDENTITAS:
+- Nama: Asisten Clo Visual
+- Bahasa: Bahasa Indonesia (utama), English (jika diminta)
+- Expertise: Fashion design, textile, pattern, color theory, garment production
+
+TUGAS ANDA:
+1. Membantu designer membuat keputusan desain (warna, pattern, fabric)
+2. Memberikan saran praktis untuk produksi garment
+3. Menjelaskan tren fashion dan aplikasinya
+4. Merekomendasikan kombinasi material dan teknik
+
+GAYA KOMUNIKASI:
+- Ramah, profesional, to-the-point
+- Gunakan emoji untuk visual appeal (tapi jangan berlebihan)
+- Berikan contoh konkret dan actionable
+- Jika user bertanya tentang desain, beri saran spesifik (warna hex, jenis kain, dll)
+
+CONTOH RESPONSE BAGUS:
+User: "Mau buat hoodie untuk anak muda"
+Anda: "🎨 Untuk target anak muda, saya sarankan:\n\n**Warna:** Navy blue (#1e293b) atau black (#0f172a) - timeless & versatile\n**Fabric:** French terry 280gsm - comfortable & durable\n**Style:** Oversized fit dengan kangaroo pocket\n**Detail:** Bisa tambah print graphic minimalis di chest atau back\n\nMau saya buatkan prompt untuk generate texture pattern-nya?"
+
+PENTING: Jawab dalam Bahasa Indonesia kecuali user minta English.`;
+
+    const chatPromise = ai!.models.generateContent({
       model: 'gemini-2.5-flash',
-      config: {
-        systemInstruction: "You are a helpful fashion design assistant for Clo Vsual. You speak primarily in Indonesian. You help designers, students, and garment factories with ideas.",
-      },
-      history: history.map(h => ({
-        role: h.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: h.content }]
-      }))
+      systemInstruction: systemPrompt,
+      contents: [
+        // Convert history to proper format
+        ...history.map(h => ({
+          role: h.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: h.content }]
+        })),
+        // Add new message
+        {
+          role: 'user',
+          parts: [{ text: newMessage }]
+        }
+      ]
     });
 
-    const result = await chat.sendMessage({ message: newMessage });
-    return result.text || "Maaf, saya tidak dapat menghasilkan respon saat ini.";
-  } catch (error) {
+    const response = await Promise.race([chatPromise, timeoutPromise]) as any;
+    const replyText = response.text || "Maaf, saya tidak dapat menghasilkan respon saat ini. Silakan coba lagi.";
+    
+    console.log('[Chat AI] Response:', replyText.substring(0, 100) + '...');
+    return replyText;
+    
+  } catch (error: any) {
     console.error("Chat Error:", error);
-    return "Maaf, saya sedang mengalami gangguan koneksi. Silakan coba lagi nanti.";
+    
+    // Specific error messages
+    if (error.message === 'Chat request timeout') {
+      return "⏱️ Maaf, response terlalu lama. Silakan coba pertanyaan yang lebih spesifik atau coba lagi.";
+    }
+    
+    if (error.message?.includes('API key')) {
+      return "🔑 API key tidak valid. Silakan hubungi administrator atau gunakan panel 'Text to Design' untuk membuat desain.";
+    }
+    
+    return "❌ Maaf, saya sedang mengalami gangguan. Silakan coba lagi atau gunakan panel 'Text to Design' untuk membuat desain langsung.";
   }
 };

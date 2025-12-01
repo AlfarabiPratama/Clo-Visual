@@ -219,10 +219,18 @@ const DesignerPage: React.FC = () => {
     setChatHistory(prev => [...prev, { role: 'user', content: userMsg }]);
     setIsChatLoading(true);
 
-    const reply = await chatWithAiAssistant(chatHistory, userMsg);
-    
-    setChatHistory(prev => [...prev, { role: 'assistant', content: reply }]);
-    setIsChatLoading(false);
+    try {
+      const reply = await chatWithAiAssistant(chatHistory, userMsg);
+      setChatHistory(prev => [...prev, { role: 'assistant', content: reply }]);
+    } catch (error) {
+      console.error('Chat error:', error);
+      setChatHistory(prev => [...prev, { 
+        role: 'assistant', 
+        content: '❌ Maaf, saya mengalami masalah koneksi. Silakan coba lagi atau gunakan panel "Text to Design" untuk membuat desain.' 
+      }]);
+    } finally {
+      setIsChatLoading(false);
+    }
   };
 
   const handleExport = (type: 'png' | 'glb') => {
