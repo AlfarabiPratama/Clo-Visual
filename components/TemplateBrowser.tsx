@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { X, Search, Sparkles, TrendingUp } from 'lucide-react';
 import { TEMPLATE_LIBRARY, getPopularTemplates, searchTemplates, DesignTemplate } from '../data/templateLibrary';
 import { DesignState } from '../types';
@@ -9,7 +9,7 @@ interface TemplateBrowserProps {
   onSelectTemplate: (template: DesignTemplate) => void;
 }
 
-const TemplateBrowser: React.FC<TemplateBrowserProps> = ({ isOpen, onClose, onSelectTemplate }) => {
+const TemplateBrowser = ({ isOpen, onClose, onSelectTemplate }: TemplateBrowserProps) => {
   const [activeCategory, setActiveCategory] = useState<string>('popular');
   const [searchQuery, setSearchQuery] = useState('');
   
