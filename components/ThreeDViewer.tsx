@@ -724,7 +724,7 @@ const ThreeDViewer = forwardRef(function ThreeDViewer(
 
   return (
     <div className="w-full h-full rounded-lg overflow-hidden relative shadow-inner" style={{ background: 'linear-gradient(135deg, #0b1120 0%, #1a1f35 50%, #0f1419 100%)' }}>
-      <div className="absolute top-4 left-4 z-10 flex flex-col items-start gap-1 pointer-events-none">
+      <div className="absolute top-4 right-4 z-10 flex flex-col items-end gap-1 pointer-events-none">
         <div className="bg-white/80 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium text-gray-700 shadow-sm border border-gray-100">
           Model: {customModelUrl ? 'Custom Upload' : garmentType}
         </div>
