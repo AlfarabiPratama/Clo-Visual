@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useRef, useLayoutEffect, ReactNode, forwardRef, Component } from 'react';
+import React, { useRef, useLayoutEffect, useEffect, ReactNode, forwardRef, Component } from 'react';
 import { Canvas, useFrame, useLoader, extend } from '@react-three/fiber';
 import { OrbitControls, useTexture, ContactShadows, Center, useGLTF } from '@react-three/drei';
 // import { EffectComposer, SSAO } from '@react-three/postprocessing';
