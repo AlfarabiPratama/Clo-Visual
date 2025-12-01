@@ -12,10 +12,7 @@ export default defineConfig(({ mode }) => {
       // Base path: production (GitHub Pages) vs development (local)
       base: mode === 'production' ? '/Clo-Visual/' : '/',
       plugins: [react()],
-      define: {
-        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
-      },
+      // Vite automatically exposes env vars prefixed with VITE_ to client
       resolve: {
         alias: {
           '@': path.resolve(__dirname, '.'),

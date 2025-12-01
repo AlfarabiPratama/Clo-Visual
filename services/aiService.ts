@@ -5,8 +5,8 @@ import { AiResponse } from "../types";
 // Initialize Gemini
 // Note: In a real production app, API keys should not be exposed on the client side directly
 // without proper restrictions, or calls should be proxied through a backend.
-// As per guidelines, we access process.env.API_KEY directly.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
 // Mock data to use if API key is missing or for rapid prototyping
 const MOCK_DESIGN_RESPONSE: AiResponse = {
@@ -16,21 +16,26 @@ const MOCK_DESIGN_RESPONSE: AiResponse = {
 };
 
 export const generateDesignFromText = async (prompt: string): Promise<AiResponse> => {
-  if (!process.env.API_KEY) {
+  if (!apiKey || !ai) {
     console.warn("No API Key found. Returning mock data.");
     await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate delay
     return MOCK_DESIGN_RESPONSE;
   }
 
   try {
-    const response = await ai.models.generateContent({
+    // Add timeout wrapper to prevent hanging requests
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('AI request timeout')), 15000)
+    );
+
+    const apiPromise = ai!.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: `You are an expert fashion and textile design AI assistant specializing in realistic fabric patterns and garment designs.
 
 Analyze this design request: "${prompt}"
 
 Consider:
-- Fabric texture authenticity (cotton weave, jersey knit, etc.)
+- Fabric texture authenticity (cotton weave, jersey knit, batik, etc.)
 - Color theory and fashion trends
 - Pattern scale and repetition
 - Realistic garment draping and fit
@@ -39,7 +44,7 @@ Consider:
 Return a JSON object with:
 1. suggestedColor: Professional hex color code that works well for fabric
 2. designDescription: Detailed Indonesian description (2-3 sentences) covering fabric type, pattern style, and intended use
-3. texturePattern: Specific pattern keyword (e.g., 'jersey-knit', 'batik-modern', 'stripes-thin', 'floral-vintage', 'geometric-minimal')`,
+3. texturePattern: SINGLE keyword from: jersey-knit, batik-modern, stripes, floral, geometric, plain, denim, cotton`,
       config: {
         responseMimeType: "application/json",
         responseSchema: {
@@ -53,6 +58,7 @@ Return a JSON object with:
       }
     });
 
+    const response = await Promise.race([apiPromise, timeoutPromise]) as any;
     const data = JSON.parse(response.text || '{}');
     
     // Map pattern keywords to realistic fabric textures
@@ -76,14 +82,19 @@ Return a JSON object with:
       texturePattern: matchedPattern ? patternMap[matchedPattern] : null
     };
 
-  } catch (error) {
+  } catch (error: any) {
     console.error("AI Generation Error:", error);
-    return MOCK_DESIGN_RESPONSE;
+    // Return graceful fallback with error hint
+    return {
+      suggestedColor: "#1f2937",
+      designDescription: `Gagal generate AI (${error.message || 'timeout'}). Coba prompt lebih sederhana atau refresh halaman.`,
+      texturePattern: null
+    };
   }
 };
 
 export const generateDesignFromImage = async (imageFile: File): Promise<AiResponse> => {
-  if (!process.env.API_KEY) {
+  if (!apiKey || !ai) {
     await new Promise(resolve => setTimeout(resolve, 2000));
     return {
       suggestedColor: "#3B82F6",
@@ -161,7 +172,7 @@ Return JSON format.` },
 };
 
 export const chatWithAiAssistant = async (history: {role: string, content: string}[], newMessage: string): Promise<string> => {
-  if (!process.env.API_KEY) {
+  if (!apiKey || !ai) {
     await new Promise(resolve => setTimeout(resolve, 1000));
     return "Halo! Saya adalah asisten desain Clo Vsual (Mode Demo). Saya bisa memberikan saran tentang tren warna, kain, dan gaya untuk proyek fashion Anda.";
   }
